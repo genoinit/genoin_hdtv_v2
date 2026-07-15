@@ -522,6 +522,8 @@ class _HomePageState extends State<HomePage> {
     final media = MediaQuery.of(context);
     final isDesktop = media.orientation == Orientation.landscape && media.size.width > 768;
 
+    final bool isMobileLandscape = !isDesktop && media.orientation == Orientation.landscape;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -568,17 +570,15 @@ class _HomePageState extends State<HomePage> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 backgroundColor: const Color(0xFF0E0E16),
-                body: SafeArea(
-                  child: _isLoadingPlaylist
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
-                          ),
-                        )
-                      : isDesktop
-                          ? _buildDesktopLayout()
-                          : _buildMobileLayout(),
-                ),
+                body: _isLoadingPlaylist
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                        ),
+                      )
+                    : isDesktop || isMobileLandscape
+                        ? _buildDesktopLayout()
+                        : _buildMobileLayout(),
               ),
             ),
     );
@@ -786,6 +786,8 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMobileLayout() {
     return Column(
       children: [
+        // Push the content down to prevent the 16:9 video viewport from overflowing/drawing under the status bar area
+        SizedBox(height: MediaQuery.of(context).padding.top),
         // Video viewport (Sticky 16:9 ratio at top)
         AspectRatio(
           aspectRatio: 16 / 9,
@@ -1124,6 +1126,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             'GENOIN',
             style: TextStyle(
+              fontStyle: FontStyle.italic,
               color: Colors.white.withOpacity(0.4),
               fontSize: 16,
               fontWeight: FontWeight.w800,

@@ -110,7 +110,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       if (orientation == Orientation.landscape) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       } else {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ));
       }
     }
   }
@@ -181,6 +187,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _cancelControlsTimer();
     _bufferTimer?.cancel();
     _controller?.dispose();
+    
+    // Restore edgeToEdge and default portrait translucent overlays when player is closed
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+    
     super.dispose();
   }
 
@@ -214,6 +230,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       
       await _controller!.initialize();
       
+      // If the initialization was aborted by the loading timeout in the meantime, stop execution
+      if (_controller == null) return;
+      
       // Successfully initialized
       _cancelLoadTimer();
       
@@ -237,7 +256,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         widget.onPlaybackStarted!();
       }
     } catch (e) {
-      _handleFailure('Connection Error', 'Failed to load video stream', true);
+      if (_controller != null) {
+        _handleFailure('Connection Error', 'Failed to load video stream', true);
+      }
     }
   }
 
@@ -274,6 +295,21 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   void _handleFailure(String title, String subtitle, bool allowUrlRetry) {
     _cancelLoadTimer();
+    
+    // Remove listener to prevent duplicate error callbacks
+    if (_controller != null) {
+      _controller!.removeListener(_onControllerChanged);
+    }
+
+    // If a custom quality stream failed, fall back locally to default Auto stream
+    if (_currentQuality != 'Auto') {
+      debugPrint('Quality $_currentQuality failed, falling back to Auto');
+      _currentQuality = 'Auto';
+      _currentPlayUrl = widget.channel.streamUrl;
+      _initializePlayer();
+      return;
+    }
+
     setState(() {
       _isLoading = false;
       _isError = true;
@@ -293,6 +329,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         _loadProgress = _secondsRemaining / 10.0;
         if (_secondsRemaining <= 0) {
           _cancelLoadTimer();
+          
+          // Dispose the controller immediately to prevent it from completing in the background
+          final tempController = _controller;
+          _controller = null;
+          tempController?.dispose();
+          
           _handleFailure('Connection Error', 'Loading stream timed out', true);
         }
       });
@@ -352,7 +394,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       if (_isDesktopFullscreen) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       } else {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ));
       }
     }
   }
@@ -444,13 +492,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                             Text(
                               'GENOIN',
                               style: TextStyle(
+                                fontStyle: FontStyle.italic,
                                 color: Colors.white.withOpacity(0.4),
                                 fontSize: widget.isMobile ? 16 : 24,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: widget.isMobile ? 4.0 : 6.0),
                             Text(
                               'HDTV',
                               style: TextStyle(
