@@ -12,17 +12,22 @@ class PlaylistService {
     return [
       Playlist(
         name: 'Genoin',
-        url: 'https://genoin.com/playlist/genoin.m3u',
+        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/genoin.m3u',
         type: 'm3u',
       ),
       Playlist(
         name: 'Bangla',
-        url: 'https://tv.shajon.dev/playlist/bangla.json',
+        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/bangla.json',
         type: 'json',
       ),
       Playlist(
-        name: 'FTP FIFA',
-        url: 'http://10.20.30.40/tv-server',
+        name: 'Sports',
+        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/sports.json',
+        type: 'json',
+      ),
+      Playlist(
+        name: 'FTP',
+        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/ftp.json',
         type: 'json',
       ),
     ];
