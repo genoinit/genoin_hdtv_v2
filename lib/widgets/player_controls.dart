@@ -69,7 +69,12 @@ class PlayerControls extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () {}, // Swallows taps so they don't propagate to the root video container
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16 + MediaQuery.of(context).padding.left,
+                        right: 16 + MediaQuery.of(context).padding.right,
+                        top: 16,
+                        bottom: 16 + MediaQuery.of(context).padding.bottom,
+                      ),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,

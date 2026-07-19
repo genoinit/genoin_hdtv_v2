@@ -325,7 +325,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         fontStyle: FontStyle.italic,
                         color: Colors.white,
                         fontSize: 28,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                       ),
                     ),

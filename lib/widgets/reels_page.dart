@@ -40,6 +40,7 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
   BoxFit _videoFit = BoxFit.contain; // Cycle state: BoxFit.contain, BoxFit.cover, BoxFit.fill
   late AnimationController _hintController;
   late Animation<double> _hintAnimation;
+  bool _showControls = false;
 
   @override
   void initState() {
@@ -152,6 +153,13 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
                   // Handled internally by video player retrying
                 },
                 epgText: epgText,
+                onControlsVisibilityChanged: (visible) {
+                  if (mounted) {
+                    setState(() {
+                      _showControls = visible;
+                    });
+                  }
+                },
               );
             },
           ),
@@ -161,31 +169,45 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
           // 1. Exit Button (Top Left)
           Positioned(
             top: MediaQuery.of(context).padding.top + 14,
-            left: 14,
-            child: _buildIconButton(Icons.close, widget.onExit),
+            left: 14 + MediaQuery.of(context).padding.left,
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: _buildIconButton(Icons.close, widget.onExit),
+              ),
+            ),
           ),
 
           // 2. Video Fit Button (Top Right)
           Positioned(
             top: MediaQuery.of(context).padding.top + 14,
-            right: 14,
-            child: _buildIconButton(
-              _videoFit == BoxFit.contain
-                  ? Icons.aspect_ratio
-                  : _videoFit == BoxFit.cover
-                      ? Icons.fullscreen
-                      : Icons.fit_screen,
-              () {
-                setState(() {
-                  if (_videoFit == BoxFit.contain) {
-                    _videoFit = BoxFit.cover;
-                  } else if (_videoFit == BoxFit.cover) {
-                    _videoFit = BoxFit.fill;
-                  } else {
-                    _videoFit = BoxFit.contain;
-                  }
-                });
-              },
+            right: 14 + MediaQuery.of(context).padding.right,
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: _buildIconButton(
+                  _videoFit == BoxFit.contain
+                      ? Icons.aspect_ratio
+                      : _videoFit == BoxFit.cover
+                          ? Icons.fullscreen
+                          : Icons.fit_screen,
+                  () {
+                    setState(() {
+                      if (_videoFit == BoxFit.contain) {
+                        _videoFit = BoxFit.cover;
+                      } else if (_videoFit == BoxFit.cover) {
+                        _videoFit = BoxFit.fill;
+                      } else {
+                        _videoFit = BoxFit.contain;
+                      }
+                    });
+                  },
+                ),
+              ),
             ),
           ),
 
@@ -194,20 +216,24 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
             top: MediaQuery.of(context).padding.top + 20,
             left: 0,
             right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  '${_currentIndex + 1} / ${widget.channels.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: [FontFeature.tabularFigures()],
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    '${_currentIndex + 1} / ${widget.channels.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ),
@@ -216,111 +242,122 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
 
           // 4. Channel Info details (Bottom Left)
           Positioned(
-            left: 16,
+            left: 16 + MediaQuery.of(context).padding.left,
             bottom: 70,
-            right: 80, // Leave space for hint on the right
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Channel name and Server Badge Row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+            right: 80 + MediaQuery.of(context).padding.right,
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(
-                      child: Text(
-                        activeChannel.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(color: Colors.black87, offset: Offset(0, 1), blurRadius: 6),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (activeChannel.urls.length > 1) ...[
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            activeChannel.currentUrlIndex = (activeChannel.currentUrlIndex + 1) % activeChannel.urls.length;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF667EEA).withOpacity(0.85),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.15),
-                            ),
-                          ),
+                    // Channel name and Server Badge Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
                           child: Text(
-                            'Server ${activeChannel.currentUrlIndex + 1}/${activeChannel.urls.length}',
+                            activeChannel.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(color: Colors.black87, offset: Offset(0, 1), blurRadius: 6),
+                              ],
                             ),
                           ),
                         ),
+                        if (activeChannel.urls.length > 1) ...[
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                activeChannel.currentUrlIndex = (activeChannel.currentUrlIndex + 1) % activeChannel.urls.length;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF667EEA).withOpacity(0.85),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.15),
+                                ),
+                              ),
+                              child: Text(
+                                'Server ${activeChannel.currentUrlIndex + 1}/${activeChannel.urls.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    // Category label (replaces with EPG live title if available)
+                    Text(
+                      widget.epgData.containsKey(activeChannel.tvgId)
+                          ? (widget.epgData[activeChannel.tvgId]?['title'] ?? activeChannel.category)
+                          : activeChannel.category,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                        shadows: const [
+                          Shadow(color: Colors.black87, offset: Offset(0, 1), blurRadius: 4),
+                        ],
                       ),
-                    ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                // Category label (replaces with EPG live title if available)
-                Text(
-                  widget.epgData.containsKey(activeChannel.tvgId)
-                      ? (widget.epgData[activeChannel.tvgId]?['title'] ?? activeChannel.category)
-                      : activeChannel.category,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 12,
-                    shadows: const [
-                      Shadow(color: Colors.black87, offset: Offset(0, 1), blurRadius: 4),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
 
           // 5. Swipe Hint Overlay (Bottom Right)
           Positioned(
-            right: 16,
+            right: 16 + MediaQuery.of(context).padding.right,
             bottom: 70,
-            child: IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _hintAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _hintAnimation.value),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.keyboard_double_arrow_up,
-                          color: Colors.white70,
-                          size: 16,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'swipe up/down',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 11,
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _hintAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _hintAnimation.value),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.keyboard_double_arrow_up,
+                            color: Colors.white70,
+                            size: 16,
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                          const SizedBox(height: 2),
+                          Text(
+                            'swipe up/down',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),

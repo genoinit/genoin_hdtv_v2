@@ -27,6 +27,7 @@ class VideoPlayerWidget extends StatefulWidget {
   final VoidCallback? onPlaybackStarted;
   final String? epgText; // New EPG parameter!
   final bool isListPanelOpen;
+  final ValueChanged<bool>? onControlsVisibilityChanged;
 
   const VideoPlayerWidget({
     super.key,
@@ -47,6 +48,7 @@ class VideoPlayerWidget extends StatefulWidget {
     this.onPlaybackStarted,
     this.epgText,
     this.isListPanelOpen = false,
+    this.onControlsVisibilityChanged,
   });
 
   @override
@@ -62,8 +64,17 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   String _errorSubtext = 'Switching channel...';
   
   // Controls overlay visibility
-  bool _showControls = true;
+  late bool _showControls;
   Timer? _controlsTimer;
+
+  void _updateControlsVisibility(bool visible) {
+    if (mounted && _showControls != visible) {
+      setState(() {
+        _showControls = visible;
+      });
+      widget.onControlsVisibilityChanged?.call(visible);
+    }
+  }
 
   // Load timer states
   int _secondsRemaining = 10;
@@ -94,9 +105,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
+    _showControls = !widget.reelsMode;
     _currentPlayUrl = widget.channel.streamUrl;
     _initializePlayer();
-    _startControlsTimer();
+    if (_showControls) {
+      _startControlsTimer();
+    }
   }
 
   @override
@@ -351,9 +365,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _cancelControlsTimer();
     _controlsTimer = Timer(Duration(milliseconds: widget.isMobile ? 4000 : 2500), () {
       if (mounted && _controller != null && _controller!.value.isPlaying && !_isError) {
-        setState(() {
-          _showControls = false;
-        });
+        _updateControlsVisibility(false);
       }
     });
   }
@@ -364,9 +376,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   void _toggleControls() {
-    setState(() {
-      _showControls = !_showControls;
-    });
+    _updateControlsVisibility(!_showControls);
     if (_showControls) {
       _startControlsTimer();
     } else {
@@ -439,9 +449,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         return MouseRegion(
           onHover: (_) {
             if (!widget.isMobile) {
-              setState(() {
-                _showControls = true;
-              });
+              _updateControlsVisibility(true);
               _startControlsTimer();
             }
           },
@@ -495,7 +503,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                 fontStyle: FontStyle.italic,
                                 color: Colors.white.withOpacity(0.4),
                                 fontSize: widget.isMobile ? 16 : 24,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
                               ),
                             ),

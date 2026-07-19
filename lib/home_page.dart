@@ -1226,7 +1226,7 @@ class _HomePageState extends State<HomePage> {
               fontStyle: FontStyle.italic,
               color: Colors.white.withOpacity(0.4),
               fontSize: 16,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               letterSpacing: 0.5,
             ),
           ),
