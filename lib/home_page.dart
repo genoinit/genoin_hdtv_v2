@@ -70,6 +70,10 @@ class _HomePageState extends State<HomePage> {
 
   // Controller for mobile category swiping PageView carousel
   late PageController _mobilePageController;
+  ScrollPhysics _pageScrollPhysics = const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+  Offset? _dragStartOffset;
+  double? _pageControllerStartOffset;
+  bool _isPageScrolling = false;
 
   // Electronic Program Guide (EPG) parsed schedule data
   Map<String, Map<String, dynamic>> _epgData = {};
@@ -927,6 +931,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     )
                   : PageView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
                       controller: _mobilePageController,
                       itemCount: _categories.length,
                       onPageChanged: (index) {
@@ -940,19 +945,111 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         final cat = _categories[index];
                         final catChannels = _getChannelsForCategory(cat);
-                        return SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: ChannelGrid(
-                            channels: catChannels,
-                            activeChannel: _activeChannel,
-                            favorites: _favorites,
-                            searchQuery: _searchQuery,
-                            isDesktop: false,
-                            onChannelTap: (ch) {
-                              final idx = catChannels.indexOf(ch);
-                              _playChannel(ch, idx);
-                            },
-                            onFavoriteToggled: _toggleFavorite,
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onHorizontalDragStart: (details) {
+                            _dragStartOffset = details.globalPosition;
+                            _pageControllerStartOffset = _mobilePageController.hasClients ? _mobilePageController.offset : 0.0;
+                            _isPageScrolling = false;
+                          },
+                          onHorizontalDragUpdate: (details) {
+                            if (_dragStartOffset == null || _pageControllerStartOffset == null) return;
+                            
+                            final double deltaX = details.globalPosition.dx - _dragStartOffset!.dx;
+                            final double deltaY = details.globalPosition.dy - _dragStartOffset!.dy;
+                            
+                            // Check if this is a deliberate horizontal drag:
+                            // 1. Horizontal movement must be larger than vertical movement (1.8 ratio)
+                            // 2. We require a threshold (slop) of at least 32 pixels horizontally before starting to slide!
+                            if (!_isPageScrolling) {
+                              if (deltaX.abs() > 32.0 && deltaX.abs() > deltaY.abs() * 1.8) {
+                                _isPageScrolling = true;
+                              }
+                            }
+                            
+                            if (_isPageScrolling) {
+                              final double targetOffset = _pageControllerStartOffset! - deltaX;
+                              final double maxScroll = _mobilePageController.position.maxScrollExtent;
+                              final double minScroll = _mobilePageController.position.minScrollExtent;
+                              final double clamped = targetOffset.clamp(minScroll, maxScroll);
+                              
+                              _mobilePageController.position.jumpTo(clamped);
+                            }
+                          },
+                          onHorizontalDragEnd: (details) {
+                            if (!_isPageScrolling || _dragStartOffset == null || _pageControllerStartOffset == null) {
+                              _dragStartOffset = null;
+                              _pageControllerStartOffset = null;
+                              _isPageScrolling = false;
+                              return;
+                            }
+                            
+                            final double deltaX = details.globalPosition.dx - _dragStartOffset!.dx;
+                            final double velocity = details.primaryVelocity ?? 0.0;
+                            final int activeIndex = _categories.indexOf(_selectedCategory);
+                            
+                            int targetPage = activeIndex;
+                            if (deltaX.abs() > 32.0) {
+                              if (velocity.abs() > 300.0) {
+                                // Velocity-based flick
+                                if (velocity > 0 && activeIndex > 0) {
+                                  targetPage = activeIndex - 1;
+                                } else if (velocity < 0 && activeIndex < _categories.length - 1) {
+                                  targetPage = activeIndex + 1;
+                                }
+                              } else {
+                                // Distance-based snap (requires swiping at least 35% of page width)
+                                final double screenWidth = MediaQuery.of(context).size.width;
+                                final double ratio = deltaX / screenWidth;
+                                if (ratio.abs() > 0.35) {
+                                  if (ratio > 0 && activeIndex > 0) {
+                                    targetPage = activeIndex - 1;
+                                  } else if (ratio < 0 && activeIndex < _categories.length - 1) {
+                                    targetPage = activeIndex + 1;
+                                  }
+                                }
+                              }
+                            }
+                            
+                            if (_mobilePageController.hasClients) {
+                              _mobilePageController.animateToPage(
+                                targetPage,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                              );
+                            }
+                            
+                            _dragStartOffset = null;
+                            _pageControllerStartOffset = null;
+                            _isPageScrolling = false;
+                          },
+                          onHorizontalDragCancel: () {
+                            if (_isPageScrolling && _mobilePageController.hasClients) {
+                              final int activeIndex = _categories.indexOf(_selectedCategory);
+                              _mobilePageController.animateToPage(
+                                activeIndex,
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeOutCubic,
+                              );
+                            }
+                            _dragStartOffset = null;
+                            _pageControllerStartOffset = null;
+                            _isPageScrolling = false;
+                          },
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: ChannelGrid(
+                              channels: catChannels,
+                              activeChannel: _activeChannel,
+                              favorites: _favorites,
+                              searchQuery: _searchQuery,
+                              isDesktop: false,
+                              onChannelTap: (ch) {
+                                final idx = catChannels.indexOf(ch);
+                                _playChannel(ch, idx);
+                              },
+                              onFavoriteToggled: _toggleFavorite,
+                            ),
                           ),
                         );
                       },

@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'home_page.dart';
 import 'utils/storage.dart';
+import 'widgets/offline_page.dart';
 
 void main() async {
   // Ensure Flutter engine is initialized
@@ -23,6 +27,12 @@ void main() async {
   runApp(const MyApp());
 }
 
+enum AppState {
+  splash,
+  offline,
+  home,
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -31,25 +41,98 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _showSplash = true;
+  AppState _appState = AppState.splash;
   Timer? _splashTimer;
+  bool _hasTimerFinished = false;
+  bool _hasConnectionChecked = false;
+  bool _isConnected = false;
 
   @override
   void initState() {
     super.initState();
-    _splashTimer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        setState(() {
-          _showSplash = false;
-        });
-      }
-    });
+    _initializeApp();
   }
 
   @override
   void dispose() {
     _splashTimer?.cancel();
     super.dispose();
+  }
+
+  void _initializeApp() {
+    // Start minimum splash delay timer (storing it so we can cancel it in dispose)
+    _splashTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _hasTimerFinished = true;
+          _checkTransition();
+        });
+      }
+    });
+
+    // Start connection check concurrently
+    _checkConnection().then((connected) {
+      if (mounted) {
+        setState(() {
+          _isConnected = connected;
+          _hasConnectionChecked = true;
+          _checkTransition();
+        });
+      }
+    });
+  }
+
+  void _checkTransition() {
+    if (_hasTimerFinished && _hasConnectionChecked) {
+      setState(() {
+        _appState = _isConnected ? AppState.home : AppState.offline;
+      });
+    }
+  }
+
+  Future<bool> _checkConnection() async {
+    // Return true immediately inside unit test runner context to bypass asynchronous network sockets
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return true;
+    }
+
+    try {
+      if (kIsWeb) {
+        // Fetch a tiny server file to test active connection on Web
+        final response = await http.head(Uri.parse('https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/genoin.m3u')).timeout(const Duration(seconds: 4));
+        return response.statusCode == 200;
+      } else {
+        // Run standard DNS lookup for mobile/desktop
+        final result = await InternetAddress.lookup('google.com').timeout(const Duration(seconds: 4));
+        return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _retryConnection() async {
+    final bool connected = await _checkConnection();
+    if (connected && mounted) {
+      setState(() {
+        _appState = AppState.home;
+      });
+    }
+    return connected;
+  }
+
+  Widget _buildCurrentPage() {
+    switch (_appState) {
+      case AppState.splash:
+        return const SplashScreen(key: ValueKey('splash'));
+      case AppState.offline:
+        return OfflinePage(
+          key: const ValueKey('offline'),
+          onRetry: _retryConnection,
+        );
+      case AppState.home:
+        return const HomePage(key: ValueKey('home'));
+    }
   }
 
   @override
@@ -74,9 +157,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
-        child: _showSplash 
-            ? const SplashScreen() 
-            : const HomePage(),
+        child: _buildCurrentPage(),
       ),
     );
   }
