@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/channel.dart';
 import 'video_player_widget.dart';
+import '../utils/storage.dart';
 
 class ReelsPage extends StatefulWidget {
   final List<Channel> channels;
@@ -243,7 +244,7 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
           // 4. Channel Info details (Bottom Left)
           Positioned(
             left: 16 + MediaQuery.of(context).padding.left,
-            bottom: 70,
+            bottom: 70 + MediaQuery.of(context).padding.bottom,
             right: 80 + MediaQuery.of(context).padding.right,
             child: AnimatedOpacity(
               opacity: _showControls ? 1.0 : 0.0,
@@ -327,7 +328,7 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
           // 5. Swipe Hint Overlay (Bottom Right)
           Positioned(
             right: 16 + MediaQuery.of(context).padding.right,
-            bottom: 70,
+            bottom: 70 + MediaQuery.of(context).padding.bottom,
             child: AnimatedOpacity(
               opacity: _showControls ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 250),

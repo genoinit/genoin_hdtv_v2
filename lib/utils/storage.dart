@@ -127,4 +127,15 @@ class AppStorage {
   static Future<void> setPreferredQuality(String quality) async {
     await _prefs?.setString(_keyPreferredQuality, quality);
   }
+
+  // Auto Channel/Server Switching Settings
+  static const String _keyAutoSwitching = 'nbox_auto_switching';
+
+  static bool isAutoSwitchingEnabled() {
+    return _prefs?.getBool(_keyAutoSwitching) ?? true;
+  }
+
+  static Future<void> setAutoSwitchingEnabled(bool enabled) async {
+    await _prefs?.setBool(_keyAutoSwitching, enabled);
+  }
 }

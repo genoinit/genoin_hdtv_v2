@@ -57,25 +57,6 @@ class ErrorOverlay extends StatelessWidget {
               fontSize: 12,
             ),
           ),
-          
-          if (onRetry != null) ...[
-            const SizedBox(height: 14),
-            TextButton(
-              onPressed: onRetry,
-              style: TextButton.styleFrom(
-                backgroundColor: const Color(0xFFEF4444).withOpacity(0.15),
-                foregroundColor: const Color(0xFFEF4444),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: const Text(
-                'Retry Now',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
         ],
       ),
     );

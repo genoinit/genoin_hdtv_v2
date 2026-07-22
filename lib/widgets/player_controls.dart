@@ -23,6 +23,8 @@ class PlayerControls extends StatelessWidget {
   final String currentQuality; // New Quality selection parameters!
   final List<String> availableQualities;
   final ValueChanged<String> onQualityChanged;
+  final bool autoSwitchingEnabled;
+  final VoidCallback onAutoSwitchingToggle;
 
   const PlayerControls({
     super.key,
@@ -45,6 +47,8 @@ class PlayerControls extends StatelessWidget {
     required this.currentQuality,
     required this.availableQualities,
     required this.onQualityChanged,
+    required this.autoSwitchingEnabled,
+    required this.onAutoSwitchingToggle,
     this.onEnterReels,
     this.epgText,
   });
@@ -70,10 +74,10 @@ class PlayerControls extends StatelessWidget {
                     onTap: () {}, // Swallows taps so they don't propagate to the root video container
                     child: Container(
                       padding: EdgeInsets.only(
-                        left: 16 + MediaQuery.of(context).padding.left,
-                        right: 16 + MediaQuery.of(context).padding.right,
-                        top: 16,
-                        bottom: 16 + MediaQuery.of(context).padding.bottom,
+                        left: 12 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.left : 0),
+                        right: 12 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.right : 0),
+                        top: (isFullscreen || reelsMode) ? 10 : 6,
+                        bottom: (isFullscreen || reelsMode) ? 10 + MediaQuery.of(context).padding.bottom : 6,
                       ),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -87,9 +91,32 @@ class PlayerControls extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
+                          // Auto-Switching Toggle Button (Left of Play/Pause)
+                          IconButton(
+                            onPressed: onAutoSwitchingToggle,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            icon: Icon(
+                              autoSwitchingEnabled
+                                  ? Icons.sync
+                                  : Icons.sync_disabled,
+                            ),
+                            color: autoSwitchingEnabled
+                                ? const Color(0xFF667EEA)
+                                : Colors.white.withOpacity(0.4),
+                            iconSize: 18,
+                            tooltip: autoSwitchingEnabled
+                                ? 'Auto-Switching: Enabled'
+                                : 'Auto-Switching: Disabled',
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                          ),
+                          
                           // Play/Pause Button
                           IconButton(
                             onPressed: onPlayPauseToggle,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
                             icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
                             color: Colors.white,
                             iconSize: 20,
@@ -100,6 +127,8 @@ class PlayerControls extends StatelessWidget {
                           // Volume Mute/Slider Row
                           IconButton(
                             onPressed: onMuteToggle,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             icon: Icon(
                               isMuted || volume == 0
                                   ? Icons.volume_off
@@ -118,8 +147,6 @@ class PlayerControls extends StatelessWidget {
 
                           const Spacer(),
 
-
-
                            // Aspect Ratio Cycle Button (only shown in fullscreen or desktop landscape mode)
                           if (isFullscreen || !isMobile)
                             IconButton(
@@ -134,6 +161,8 @@ class PlayerControls extends StatelessWidget {
                                 }
                                 onVideoFitChanged(nextFit);
                               },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                               icon: Icon(
                                 videoFit == BoxFit.contain
                                     ? Icons.aspect_ratio
@@ -224,6 +253,8 @@ class PlayerControls extends StatelessWidget {
                           // Fullscreen Toggle Button
                           IconButton(
                             onPressed: onFullscreenToggle,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             icon: Icon(isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
                             color: Colors.white,
                             iconSize: 18,
@@ -237,12 +268,11 @@ class PlayerControls extends StatelessWidget {
                 ),
 
                 // Channel Navigation circular overlay above bottom controls (wrapped to swallow tap bubbles)
-                // Channel Navigation circular overlay above bottom controls (wrapped to swallow tap bubbles)
                 if (!reelsMode && (isFullscreen || !isMobile))
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 60,
+                    bottom: 70 + MediaQuery.of(context).padding.bottom,
                     child: GestureDetector(
                       onTap: () {}, // Swallows taps so they don't propagate to the root video container
                       child: Center(
@@ -266,8 +296,10 @@ class PlayerControls extends StatelessWidget {
                 // EPG Live Program display (above bottom bar, below chevrons if shown)
                 if (epgText != null && epgText!.isNotEmpty)
                   Positioned(
-                    left: 16,
-                    bottom: (isFullscreen || (!isMobile && !reelsMode)) ? 116 : 60,
+                    left: 16 + MediaQuery.of(context).padding.left,
+                    bottom: (isFullscreen || (!isMobile && !reelsMode))
+                        ? 130 + MediaQuery.of(context).padding.bottom
+                        : 70 + MediaQuery.of(context).padding.bottom,
                     child: IgnorePointer(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -304,8 +336,8 @@ class PlayerControls extends StatelessWidget {
                 // Mobile Reels Toggle (positioned in top-right corner)
                 if (isMobile && !reelsMode && onEnterReels != null)
                   Positioned(
-                    top: 14,
-                    right: 14,
+                    top: isFullscreen ? 12 + MediaQuery.of(context).padding.top : 8,
+                    right: isFullscreen ? 12 + MediaQuery.of(context).padding.right : 8,
                     child: GestureDetector(
                       onTap: () {}, // Swallows taps to prevent video player controls toggling
                       child: Container(

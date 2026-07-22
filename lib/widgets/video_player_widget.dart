@@ -28,6 +28,8 @@ class VideoPlayerWidget extends StatefulWidget {
   final String? epgText; // New EPG parameter!
   final bool isListPanelOpen;
   final ValueChanged<bool>? onControlsVisibilityChanged;
+  final String? externalErrorTitle;
+  final String? externalErrorSubtext;
 
   const VideoPlayerWidget({
     super.key,
@@ -49,6 +51,8 @@ class VideoPlayerWidget extends StatefulWidget {
     this.epgText,
     this.isListPanelOpen = false,
     this.onControlsVisibilityChanged,
+    this.externalErrorTitle,
+    this.externalErrorSubtext,
   });
 
   @override
@@ -108,6 +112,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _showControls = !widget.reelsMode;
     _currentPlayUrl = widget.channel.streamUrl;
     _initializePlayer();
+    if (widget.externalErrorTitle != null) {
+      _showControls = true;
+    }
     if (_showControls) {
       _startControlsTimer();
     }
@@ -138,7 +145,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void didUpdateWidget(covariant VideoPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.channel != oldWidget.channel) {
+    if (widget.externalErrorTitle != oldWidget.externalErrorTitle && widget.externalErrorTitle != null) {
+      _showControls = true;
+    }
+    if (widget.channel.streamUrl != oldWidget.channel.streamUrl || widget.channel.name != oldWidget.channel.name) {
       _hlsQualities = {};
       _currentQuality = 'Auto';
       _currentPlayUrl = widget.channel.streamUrl;
@@ -157,14 +167,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     if (mounted && parsed.isNotEmpty) {
       setState(() {
         _hlsQualities = parsed;
-        
-        // Auto-apply preferred quality if saved in preferences
-        final String pref = AppStorage.getPreferredQuality();
-        if (pref != 'Auto' && _hlsQualities.containsKey(pref)) {
-          _currentQuality = pref;
-          _currentPlayUrl = _hlsQualities[pref]!;
-          _initializePlayer();
-        }
       });
     }
   }
@@ -193,6 +195,24 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _currentPlayUrl = widget.channel.streamUrl;
     });
     _initializePlayer();
+  }
+
+  void _selectServer(int index) {
+    if (index >= 0 && index < widget.channel.urls.length) {
+      setState(() {
+        widget.channel.currentUrlIndex = index;
+        _hlsQualities = {};
+        _currentQuality = 'Auto';
+        _currentPlayUrl = widget.channel.streamUrl;
+      });
+      _initializePlayer();
+    }
+  }
+
+  void _toggleAutoSwitching() {
+    final bool current = AppStorage.isAutoSwitchingEnabled();
+    AppStorage.setAutoSwitchingEnabled(!current);
+    setState(() {});
   }
 
   @override
@@ -329,6 +349,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _isError = true;
       _errorTitle = title;
       _errorSubtext = subtitle;
+      _showControls = true;
     });
     
     widget.onError(title, subtitle, allowUrlRetry);
@@ -526,8 +547,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   // Server Badge Pill Overlay (Top Left, only shown in standard mode if multiple mirrors exist, autohides with controls)
                   if (!widget.reelsMode && widget.channel.urls.length > 1)
                     Positioned(
-                      top: 14,
-                      left: 14,
+                      top: _isFullscreen ? 12 + MediaQuery.of(context).padding.top : 8,
+                      left: _isFullscreen ? 12 + MediaQuery.of(context).padding.left : 8,
                       child: AnimatedOpacity(
                         opacity: _showControls ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 250),
@@ -580,17 +601,17 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     ),
 
                   // Error Dialog Overlay
-                  if (_isError)
+                  if (_isError || widget.externalErrorTitle != null)
                     err.ErrorOverlay(
-                      message: _errorTitle,
-                      submessage: _errorSubtext,
+                      message: widget.externalErrorTitle ?? _errorTitle,
+                      submessage: widget.externalErrorSubtext ?? _errorSubtext,
                       onRetry: _initializePlayer,
                     ),
 
-                  // Player Control Overlays (shown if initialized or loading, but not in error state)
-                  if ((_isInitialized || _isLoading) && !_isError)
+                  // Player Control Overlays (shown if initialized, loading, error, or external error state)
+                  if (_isInitialized || _isLoading || _isError || widget.externalErrorTitle != null)
                     Opacity(
-                      opacity: _isLoading ? 0.5 : 1.0,
+                      opacity: (_isLoading || _isError || widget.externalErrorTitle != null) ? 0.5 : 1.0,
                       child: PlayerControls(
                         isPlaying: _controller?.value.isPlaying ?? false,
                         isMuted: widget.isMuted,
@@ -623,6 +644,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                         currentQuality: _currentQuality,
                         availableQualities: _hlsQualities.keys.toList(),
                         onQualityChanged: _changeQuality,
+                        autoSwitchingEnabled: AppStorage.isAutoSwitchingEnabled(),
+                        onAutoSwitchingToggle: _toggleAutoSwitching,
                       ),
                     ),
 

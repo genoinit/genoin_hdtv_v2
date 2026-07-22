@@ -66,6 +66,9 @@ class _HomePageState extends State<HomePage> {
   // Video aspect ratio fit mode
   BoxFit _videoFit = BoxFit.contain;
 
+  // Global key to preserve VideoPlayerWidgetState across mobile portrait / landscape orientation switches
+  final GlobalKey _playerKey = GlobalKey();
+
   bool get _isMobileDevice => Theme.of(context).platform == TargetPlatform.android || Theme.of(context).platform == TargetPlatform.iOS;
 
   // Controller for mobile category swiping PageView carousel
@@ -442,6 +445,16 @@ class _HomePageState extends State<HomePage> {
     
     if (_activeChannel == null) return;
     
+    // Check if auto switching is enabled
+    if (!AppStorage.isAutoSwitchingEnabled()) {
+      setState(() {
+        _isLocalErrorShowing = true;
+        _localErrorTitle = errorTitle;
+        _localErrorSub = errorSub;
+      });
+      return;
+    }
+    
     final currentCh = _activeChannel!;
     final totalUrls = currentCh.urls.length;
 
@@ -493,6 +506,15 @@ class _HomePageState extends State<HomePage> {
           });
           _playNextChannel();
         }
+      });
+    }
+  }
+
+  void _onPlaybackStarted() {
+    if (_isLocalErrorShowing) {
+      setState(() {
+        _isLocalErrorShowing = false;
+        _consecutiveFailures = 0;
       });
     }
   }
@@ -605,70 +627,35 @@ class _HomePageState extends State<HomePage> {
                 // Video Stream Component
                 if (_activeChannel != null)
                   Positioned.fill(
-                    child: _isLocalErrorShowing
-                        ? Container(
-                            color: Colors.black,
-                            alignment: Alignment.center,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                _buildWatermark(),
-                                Container(
-                                  width: 260,
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1A1A1A),
-                                    border: Border.all(
-                                      color: const Color(0xFFEF4444).withOpacity(0.4),
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text('📡', style: TextStyle(fontSize: 42)),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        _localErrorTitle,
-                                        style: const TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        _localErrorSub,
-                                        style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : VideoPlayerWidget(
-                            key: ValueKey(_activeChannel!.urls.isNotEmpty ? _activeChannel!.urls[_activeChannel!.currentUrlIndex] : _activeChannel!.name),
-                            channel: _activeChannel!,
-                            isMuted: _isMuted,
-                            volume: _volume,
-                            isMobile: _isMobileDevice,
-                            reelsMode: false,
-                            videoFit: _videoFit,
-                            isListPanelOpen: _showDesktopTray,
-                            onVideoFitChanged: (fit) {
-                              setState(() {
-                                _videoFit = fit;
-                              });
-                            },
-                            onPreviousChannel: _playPreviousChannel,
-                            onNextChannel: _playNextChannel,
-                            onListPanelToggle: () {
-                              setState(() {
-                                _showDesktopTray = !_showDesktopTray;
-                              });
-                            },
-                            onMuteToggle: () => _onMuteToggled(!_isMuted),
-                            onVolumeChanged: _onVolumeChanged,
-                            onError: _handlePlayerError,
-                            epgText: _getEPGText(_activeChannel),
-                          ),
+                    child: VideoPlayerWidget(
+                      key: _playerKey,
+                      channel: _activeChannel!,
+                      isMuted: _isMuted,
+                      volume: _volume,
+                      isMobile: _isMobileDevice,
+                      reelsMode: false,
+                      videoFit: _videoFit,
+                      isListPanelOpen: _showDesktopTray,
+                      externalErrorTitle: _isLocalErrorShowing ? _localErrorTitle : null,
+                      externalErrorSubtext: _isLocalErrorShowing ? _localErrorSub : null,
+                      onVideoFitChanged: (fit) {
+                        setState(() {
+                          _videoFit = fit;
+                        });
+                      },
+                      onPreviousChannel: _playPreviousChannel,
+                      onNextChannel: _playNextChannel,
+                      onListPanelToggle: () {
+                        setState(() {
+                          _showDesktopTray = !_showDesktopTray;
+                        });
+                      },
+                      onMuteToggle: () => _onMuteToggled(!_isMuted),
+                      onVolumeChanged: _onVolumeChanged,
+                      onError: _handlePlayerError,
+                      onPlaybackStarted: _onPlaybackStarted,
+                      epgText: _getEPGText(_activeChannel),
+                    ),
                   )
                 else
                   Container(
@@ -796,73 +783,38 @@ class _HomePageState extends State<HomePage> {
         AspectRatio(
           aspectRatio: 16 / 9,
           child: _activeChannel != null
-              ? _isLocalErrorShowing
-                  ? Container(
-                      color: Colors.black,
-                      alignment: Alignment.center,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          _buildWatermark(),
-                          Container(
-                            width: 240,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1A1A1A),
-                              border: Border.all(
-                                color: const Color(0xFFEF4444).withOpacity(0.4),
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('📡', style: TextStyle(fontSize: 34)),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _localErrorTitle,
-                                  style: const TextStyle(color: Color(0xFFEF4444), fontSize: 14, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _localErrorSub,
-                                  style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 11),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : VideoPlayerWidget(
-                      key: ValueKey(_activeChannel!.urls.isNotEmpty ? _activeChannel!.urls[_activeChannel!.currentUrlIndex] : _activeChannel!.name),
-                      channel: _activeChannel!,
-                      isMuted: _isMuted,
-                      volume: _volume,
-                      isMobile: _isMobileDevice,
-                      reelsMode: false,
-                      videoFit: _videoFit,
-                      isListPanelOpen: _showDesktopTray,
-                      onVideoFitChanged: (fit) {
-                        setState(() {
-                          _videoFit = fit;
-                        });
-                      },
-                      onPreviousChannel: _playPreviousChannel,
-                      onNextChannel: _playNextChannel,
-                      onListPanelToggle: () {
-                        // Desktop only panel, mobile grid is always visible underneath
-                      },
-                      onMuteToggle: () => _onMuteToggled(!_isMuted),
-                      onVolumeChanged: _onVolumeChanged,
-                      onError: _handlePlayerError,
-                      onEnterReels: () {
-                        setState(() {
-                          _reelsModeActive = true;
-                        });
-                      },
-                      epgText: _getEPGText(_activeChannel),
-                    )
+              ? VideoPlayerWidget(
+                  key: _playerKey,
+                  channel: _activeChannel!,
+                  isMuted: _isMuted,
+                  volume: _volume,
+                  isMobile: _isMobileDevice,
+                  reelsMode: false,
+                  videoFit: _videoFit,
+                  isListPanelOpen: _showDesktopTray,
+                  externalErrorTitle: _isLocalErrorShowing ? _localErrorTitle : null,
+                  externalErrorSubtext: _isLocalErrorShowing ? _localErrorSub : null,
+                  onVideoFitChanged: (fit) {
+                    setState(() {
+                      _videoFit = fit;
+                    });
+                  },
+                  onPreviousChannel: _playPreviousChannel,
+                  onNextChannel: _playNextChannel,
+                  onListPanelToggle: () {
+                    // Desktop only panel, mobile grid is always visible underneath
+                  },
+                  onMuteToggle: () => _onMuteToggled(!_isMuted),
+                  onVolumeChanged: _onVolumeChanged,
+                  onError: _handlePlayerError,
+                  onPlaybackStarted: _onPlaybackStarted,
+                  onEnterReels: () {
+                    setState(() {
+                      _reelsModeActive = true;
+                    });
+                  },
+                  epgText: _getEPGText(_activeChannel),
+                )
               : Container(
                   color: Colors.black,
                   alignment: Alignment.center,
@@ -1055,6 +1007,8 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
         ),
+        // Push the content up to prevent bottom grid items from drawing under the bottom navigation bar area
+        SizedBox(height: MediaQuery.of(context).padding.bottom),
       ],
     );
   }
