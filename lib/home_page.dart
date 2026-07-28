@@ -606,6 +606,14 @@ class _HomePageState extends State<HomePage> {
                   _reelsModeActive = false;
                   _updateDisplayedChannels();
                 });
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _mobilePageController.hasClients) {
+                    final catIndex = _categories.indexOf(_selectedCategory);
+                    if (catIndex != -1 && _mobilePageController.page?.round() != catIndex) {
+                      _mobilePageController.jumpToPage(catIndex);
+                    }
+                  }
+                });
               },
               onFavoriteToggled: _toggleFavorite,
               onMuteToggled: _onMuteToggled,
