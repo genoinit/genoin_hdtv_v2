@@ -685,10 +685,10 @@ class _HomePageState extends State<HomePage> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  bottom: _showDesktopTray ? 12 : -230,
+                  bottom: _showDesktopTray ? 12 : -280,
                   left: 12,
                   right: 12,
-                  height: 205,
+                  height: 255,
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFA1C1917), // index.html --bg-surface #1C1917
@@ -707,10 +707,43 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: Column(
                       children: [
-                        // Single horizontal bar containing: server, categories (all channels, favorites, recent), and searchbox
-                        _buildDesktopHeader(),
+                        // 1st Row: Servers & Searchbox area with full width
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
+                          child: CustomSearchBar(
+                            query: _searchQuery,
+                            onQueryChanged: _onSearchQueryChanged,
+                            playlists: _playlists,
+                            selectedPlaylist: _selectedPlaylist!,
+                            onPlaylistSelected: (pl) {
+                              setState(() {
+                                _selectedPlaylist = pl;
+                                _loadPlaylistChannels(pl, autoPlay: false);
+                              });
+                            },
+                            resultCount: _searchResultCount,
+                            searchMode: _searchMode,
+                            recentSearches: _searchHistory,
+                            onSearchSubmitted: _onSearchSubmitted,
+                            onRemoveRecent: _removeSearchHistoryItem,
+                            onClearSearch: _clearSearch,
+                          ),
+                        ),
 
-                        // Channel scroll list with arrows (decreased top & bottom gap)
+                        // 2nd Row: Playlist Category (all channels, favourites, recent)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, right: 12, top: 2, bottom: 4),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: CategoryTabs(
+                              categories: _categories,
+                              selectedCategory: _selectedCategory,
+                              onCategorySelected: _switchCategory,
+                            ),
+                          ),
+                        ),
+
+                        // 3rd Row: Playlist / Channel list grid
                         Expanded(
                           child: _rawChannels.isEmpty
                               ? const Center(
@@ -732,7 +765,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                         ),
 
-                        // Collapse button area
+                        // 4th Row: Collapse Section ("Tap Here to Close This")
                         GestureDetector(
                           onTap: () {
                             setState(() {
