@@ -620,9 +620,13 @@ class _HomePageState extends State<HomePage> {
                 resizeToAvoidBottomInset: false,
                 backgroundColor: AppColors.bgDeep,
                 body: _isLoadingPlaylist
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                    ? const SafeArea(
+                        top: true,
+                        bottom: true,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                          ),
                         ),
                       )
                     : isDesktop || isMobileLandscape
@@ -1076,39 +1080,35 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildDevCredits() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1917), // index.html --bg-surface #1C1917
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0x3FF59E0B), // index.html --border-subtle amber
-          width: 1.0,
+      decoration: const BoxDecoration(
+        color: Colors.transparent, // Transparent background
+        border: Border(
+          top: BorderSide(
+            color: Color(0x26F59E0B), // Subtle top border only
+            width: 1.0,
+          ),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center, // Centered footer contents
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Developed By: ',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.65),
-                  fontSize: 11,
-                ),
-              ),
-              const Text(
-                'Saidur R.',
-                style: TextStyle(
-                  color: Color(0xFFF59E0B), // Amber gold accent
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Text(
+            'Developed By: ',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.65),
+              fontSize: 11.5,
+            ),
           ),
+          const Text(
+            'Saidur R.',
+            style: TextStyle(
+              color: Color(0xFFF59E0B), // Amber gold accent
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 12), // Symmetrical gap before social icons
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
