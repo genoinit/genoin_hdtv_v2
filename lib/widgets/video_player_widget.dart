@@ -169,39 +169,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       setState(() {
         _hlsQualities = parsed;
       });
-
-      // If user saved a preferred quality like '240p' or '480p' in local storage, automatically match it to this new stream!
-      final pref = AppStorage.getPreferredQuality();
-      if (pref != 'Auto') {
-        final cleanNum = pref.replaceAll(RegExp(r'[^\d]'), '');
-        String? matchedUrl;
-        
-        for (var entry in parsed.entries) {
-          final keyNum = entry.key.replaceAll(RegExp(r'[^\d]'), '');
-          if (keyNum == cleanNum) {
-            matchedUrl = entry.value;
-            break;
-          }
-        }
-
-        if (matchedUrl == null && parsed.isNotEmpty) {
-          int targetInt = int.tryParse(cleanNum) ?? 720;
-          int minDiff = 99999;
-          for (var entry in parsed.entries) {
-            int h = int.tryParse(entry.key.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
-            int diff = (h - targetInt).abs();
-            if (diff < minDiff) {
-              minDiff = diff;
-              matchedUrl = entry.value;
-            }
-          }
-        }
-
-        if (matchedUrl != null && matchedUrl != _currentPlayUrl) {
-          _currentPlayUrl = matchedUrl;
-          _initializePlayer();
-        }
-      }
     }
   }
 
@@ -313,6 +280,41 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _controller = null;
     }
 
+    // Pre-resolve quality preference if loading an M3U8 stream for the first time
+    if (_hlsQualities.isEmpty && _currentPlayUrl.toLowerCase().contains('.m3u8')) {
+      final Map<String, String> parsed = await PlaylistService.parseHlsQualities(_currentPlayUrl);
+      if (mounted && parsed.isNotEmpty) {
+        _hlsQualities = parsed;
+        final pref = AppStorage.getPreferredQuality();
+        if (pref != 'Auto') {
+          final cleanNum = pref.replaceAll(RegExp(r'[^\d]'), '');
+          String? matchedUrl;
+          for (var entry in parsed.entries) {
+            final keyNum = entry.key.replaceAll(RegExp(r'[^\d]'), '');
+            if (keyNum == cleanNum) {
+              matchedUrl = entry.value;
+              break;
+            }
+          }
+          if (matchedUrl == null && parsed.isNotEmpty) {
+            int targetInt = int.tryParse(cleanNum) ?? 720;
+            int minDiff = 99999;
+            for (var entry in parsed.entries) {
+              int h = int.tryParse(entry.key.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+              int diff = (h - targetInt).abs();
+              if (diff < minDiff) {
+                minDiff = diff;
+                matchedUrl = entry.value;
+              }
+            }
+          }
+          if (matchedUrl != null) {
+            _currentPlayUrl = matchedUrl;
+          }
+        }
+      }
+    }
+
     final url = _currentPlayUrl;
     if (url.isEmpty) {
       _handleFailure('Playback Error', 'No stream URL available', false);
@@ -361,24 +363,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     
     final value = _controller!.value;
 
-    // Buffering detection
-    if (value.isBuffering && !_isBuffering) {
-      _isBuffering = true;
-      _bufferTimer?.cancel();
-      // Wait 1s to show loading spinner (bufferingTimeout in HTML)
-      _bufferTimer = Timer(const Duration(seconds: 1), () {
-        if (mounted && _isBuffering) {
-          setState(() {
-            _isLoading = true;
-          });
-        }
-      });
-    } else if (!value.isBuffering && _isBuffering) {
-      _isBuffering = false;
-      _bufferTimer?.cancel();
-      setState(() {
-        _isLoading = false;
-      });
+    // Buffering state tracking without showing loading screen overlay during active playback
+    if (value.isBuffering != _isBuffering) {
+      _isBuffering = value.isBuffering;
     }
 
     // Error detection

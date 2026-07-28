@@ -164,12 +164,12 @@ class _ChannelGridState extends State<ChannelGrid> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: widget.channels.length,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 14, bottom: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 5,
-        mainAxisSpacing: 6,
+        mainAxisSpacing: 0,
         crossAxisSpacing: 6,
-        childAspectRatio: 0.65, // Optimal ratio for 5 items per row with logo & title
+        childAspectRatio: 0.78, // Tightly fitted ratio for 5 items per row with logo & title
       ),
       itemBuilder: (context, index) {
         final channel = widget.channels[index];

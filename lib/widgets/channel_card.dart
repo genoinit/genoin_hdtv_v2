@@ -154,84 +154,57 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Circular logo container styled same-to-same with Orange app ChannelTile
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: widget.isActive
-                          ? _CustomPulsePainter(_pulseController.value, AppColors.accent)
-                          : null,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: logoSize,
-                        height: logoSize,
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFFFFFFF), // White logo backdrop matching Orange app
-                          border: Border.all(
-                            color: widget.isActive ? AppColors.accent : AppColors.borderSubtle,
-                            width: widget.isActive ? 2.0 : 1.0,
-                          ),
-                          boxShadow: widget.isActive
-                              ? const [
-                                  BoxShadow(
-                                    color: AppColors.accentGlow,
-                                    blurRadius: 12,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: ClipOval(
-                          child: widget.channel.logo.startsWith('data:')
-                              ? Center(
-                                  child: Text(
-                                    widget.channel.name.substring(0, widget.channel.name.length > 3 ? 3 : widget.channel.name.length).toUpperCase(),
-                                    style: const TextStyle(fontSize: 11, color: AppColors.bgDeep, fontWeight: FontWeight.bold),
-                                  ),
-                                )
-                              : Image.network(
-                                  widget.channel.logo,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    color: Colors.grey.shade400,
-                                    alignment: Alignment.center,
-                                    child: const Text('TV', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                        ),
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: widget.isActive
+                      ? _CustomPulsePainter(_pulseController.value, AppColors.accent)
+                      : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: logoSize,
+                    height: logoSize,
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFFFFFFF), // White logo backdrop matching Orange app
+                      border: Border.all(
+                        color: widget.isActive ? AppColors.accent : AppColors.borderSubtle,
+                        width: widget.isActive ? 2.0 : 1.0,
                       ),
-                    );
-                  },
-                ),
-
-                // Star Favorite badge positioned same-to-same with Orange app (bottom-right -2)
-                if (!widget.channel.isAPK)
-                  Positioned(
-                    bottom: -2,
-                    right: -2,
-                    child: GestureDetector(
-                      onTap: widget.onFavoriteToggled,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.bgSurface,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          widget.isFavorite ? Icons.star : Icons.star_border,
-                          color: widget.isFavorite ? AppColors.accent : AppColors.textMuted,
-                          size: 14,
-                        ),
-                      ),
+                      boxShadow: widget.isActive
+                          ? const [
+                              BoxShadow(
+                                color: AppColors.accentGlow,
+                                blurRadius: 12,
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: ClipOval(
+                      child: widget.channel.logo.startsWith('data:')
+                          ? Center(
+                              child: Text(
+                                widget.channel.name.substring(0, widget.channel.name.length > 3 ? 3 : widget.channel.name.length).toUpperCase(),
+                                style: const TextStyle(fontSize: 11, color: AppColors.bgDeep, fontWeight: FontWeight.bold),
+                              ),
+                            )
+                          : Image.network(
+                              widget.channel.logo,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: Colors.grey.shade400,
+                                alignment: Alignment.center,
+                                child: const Text('TV', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
                     ),
                   ),
-              ],
+                );
+              },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             // Channel name text matching Orange app DM Sans 10.5px styling
             _buildHighlightText(widget.channel.name, widget.searchQuery, widget.isActive, widget.isDesktop),
           ],

@@ -89,7 +89,7 @@ class _CategoryTabsState extends State<CategoryTabs> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 32,
       child: ListView.builder(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
@@ -124,7 +124,7 @@ class _CategoryTabsState extends State<CategoryTabs> {
                     ),
                     child: Text(displayName),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 3),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     height: 2,

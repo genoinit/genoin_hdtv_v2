@@ -262,15 +262,11 @@ class _HomePageState extends State<HomePage> {
     }
     
     _retryTimer?.cancel();
+    AppStorage.addRecentWatched(channel);
     setState(() {
       _activeChannel = channel;
       _activeChannelIndex = index;
       _isLocalErrorShowing = false;
-    });
-
-    // Save to recents
-    AppStorage.addRecentWatched(channel);
-    setState(() {
       _recents = AppStorage.getRecentWatched();
     });
   }
@@ -619,19 +615,9 @@ class _HomePageState extends State<HomePage> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 backgroundColor: AppColors.bgDeep,
-                body: _isLoadingPlaylist
-                    ? const SafeArea(
-                        top: true,
-                        bottom: true,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
-                          ),
-                        ),
-                      )
-                    : isDesktop || isMobileLandscape
-                        ? _buildDesktopLayout()
-                        : _buildMobileLayout(),
+                body: isDesktop || isMobileLandscape
+                    ? _buildDesktopLayout()
+                    : _buildMobileLayout(),
               ),
             ),
     );
@@ -889,7 +875,7 @@ class _HomePageState extends State<HomePage> {
         // Sticky mobile header (Search & Categories stay fixed at the top)
         Container(
           color: AppColors.bgDeep,
-          padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 3.5),
           child: Column(
             children: [
               CustomSearchBar(
@@ -910,12 +896,13 @@ class _HomePageState extends State<HomePage> {
                 onRemoveRecent: _removeSearchHistoryItem,
                 onClearSearch: _clearSearch,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               CategoryTabs(
                 categories: _categories,
                 selectedCategory: _selectedCategory,
                 onCategorySelected: _switchCategory,
               ),
+              const SizedBox(height: 3.5),
             ],
           ),
         ),
