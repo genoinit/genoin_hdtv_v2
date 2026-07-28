@@ -799,157 +799,56 @@ class _HomePageState extends State<HomePage> {
   // --- Landscape Header Row Helper Components ---
   Widget _buildDesktopHeader() {
     return Container(
-      margin: const EdgeInsets.only(left: 10, right: 10, top: 8, bottom: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF282421), // Distinct header background color slightly different from playlist tray bg (#1C1917)
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0x3FF59E0B),
-          width: 0.8,
+      margin: const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+      padding: const EdgeInsets.only(left: 4, right: 4, top: 4, bottom: 8),
+      decoration: const BoxDecoration(
+        color: Colors.transparent, // Box area removed
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0x3FF59E0B), // Subtle bottom border only
+            width: 1.0,
+          ),
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Server List Selection Dropdown
-          _buildDesktopPlaylistDropdown(),
-          const SizedBox(width: 8),
-
-          // 2. Search Box Input (placed together on the left with Server)
-          _buildDesktopSearchBox(),
-          const SizedBox(width: 10),
-
-          // Vertical Divider
-          Container(
-            width: 1,
-            height: 20,
-            color: Colors.white24,
-          ),
-          const SizedBox(width: 10),
-
-          // 3. Category Tabs Section (📺 All Channels, ⭐ Favorites, 🕒 Recent)
+          // 1. LEFT ALIGN: Category Section (📺 All Channels, ⭐ Favorites, 🕒 Recent)
           Expanded(
-            child: CategoryTabs(
-              categories: _categories,
-              selectedCategory: _selectedCategory,
-              onCategorySelected: _switchCategory,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CategoryTabs(
+                categories: _categories,
+                selectedCategory: _selectedCategory,
+                onCategorySelected: _switchCategory,
+              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildDesktopPlaylistDropdown() {
-    if (_selectedPlaylist == null) return const SizedBox();
-    return Theme(
-      data: Theme.of(context).copyWith(cardColor: AppColors.bgCard),
-      child: PopupMenuButton<Playlist>(
-        initialValue: _selectedPlaylist,
-        tooltip: 'Select Server',
-        position: PopupMenuPosition.under,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: AppColors.borderSubtle),
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.borderSubtle),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.dns, color: AppColors.accent, size: 13),
-              const SizedBox(width: 6),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 110),
-                child: Text(
-                  _selectedPlaylist!.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted, size: 14),
-            ],
-          ),
-        ),
-        onSelected: (Playlist pl) {
-          setState(() {
-            _selectedPlaylist = pl;
-            _loadPlaylistChannels(pl, autoPlay: false);
-          });
-        },
-        itemBuilder: (context) {
-          return _playlists.map((pl) {
-            final isSelected = pl.name == _selectedPlaylist!.name;
-            return PopupMenuItem<Playlist>(
-              value: pl,
-              child: Row(
-                children: [
-                  Icon(Icons.check, color: AppColors.accent.withOpacity(isSelected ? 1.0 : 0.0), size: 12),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      pl.name,
-                      style: TextStyle(
-                        color: isSelected ? AppColors.accent : AppColors.textPrimary,
-                        fontSize: 12.5,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList();
-        },
-      ),
-    );
-  }
+          const SizedBox(width: 16),
 
-  Widget _buildDesktopSearchBox() {
-    return Container(
-      width: 165,
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: AppColors.textMuted, size: 14),
-          const SizedBox(width: 4),
-          Expanded(
-            child: TextField(
-              controller: TextEditingController(text: _searchQuery)
-                ..selection = TextSelection.fromPosition(TextPosition(offset: _searchQuery.length)),
-              onChanged: _onSearchQueryChanged,
-              onSubmitted: _onSearchSubmitted,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 12),
-              decoration: const InputDecoration(
-                hintText: 'Search...',
-                hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 6),
-              ),
+          // 2. RIGHT ALIGN: Server & Search Box together (Home screen search & server bar style)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: CustomSearchBar(
+              query: _searchQuery,
+              onQueryChanged: _onSearchQueryChanged,
+              playlists: _playlists,
+              selectedPlaylist: _selectedPlaylist!,
+              onPlaylistSelected: (pl) {
+                setState(() {
+                  _selectedPlaylist = pl;
+                  _loadPlaylistChannels(pl, autoPlay: false);
+                });
+              },
+              resultCount: _searchResultCount,
+              searchMode: _searchMode,
+              recentSearches: _searchHistory,
+              onSearchSubmitted: _onSearchSubmitted,
+              onRemoveRecent: _removeSearchHistoryItem,
+              onClearSearch: _clearSearch,
             ),
           ),
-          if (_searchQuery.isNotEmpty)
-            GestureDetector(
-              onTap: _clearSearch,
-              child: const Icon(Icons.close, color: AppColors.textMuted, size: 13),
-            ),
         ],
       ),
     );
