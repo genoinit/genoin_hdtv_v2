@@ -253,6 +253,16 @@ class _HomePageState extends State<HomePage> {
         _displayedChannels = allCh;
       }
     }
+
+    // Schedule post-frame jump for _mobilePageController so portrait PageView is ALWAYS synced to _selectedCategory
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _mobilePageController.hasClients) {
+        final catIndex = _categories.indexOf(_selectedCategory);
+        if (catIndex != -1 && _mobilePageController.page?.round() != catIndex) {
+          _mobilePageController.jumpToPage(catIndex);
+        }
+      }
+    });
   }
 
   void _playChannel(Channel channel, int index) {
@@ -902,6 +912,15 @@ class _HomePageState extends State<HomePage> {
 
   // --- Portrait Mobile Layout ---
   Widget _buildMobileLayout() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _mobilePageController.hasClients) {
+        final catIndex = _categories.indexOf(_selectedCategory);
+        if (catIndex != -1 && _mobilePageController.page?.round() != catIndex) {
+          _mobilePageController.jumpToPage(catIndex);
+        }
+      }
+    });
+
     return SafeArea(
       top: true,
       bottom: true,
