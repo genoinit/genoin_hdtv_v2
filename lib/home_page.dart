@@ -389,7 +389,7 @@ class _HomePageState extends State<HomePage> {
       });
       return favs;
     } else if (category == '🕒 Recent') {
-      return _recents;
+      return List.from(_recents);
     } else if (category == '📺 All Channels') {
       final allCh = <Channel>[];
       final seenKeys = <String>{};
@@ -912,11 +912,18 @@ class _HomePageState extends State<HomePage> {
 
   // --- Portrait Mobile Layout ---
   Widget _buildMobileLayout() {
+    final catIndex = _categories.indexOf(_selectedCategory);
+    final targetIndex = catIndex != -1 ? catIndex : 0;
+
+    if (!_mobilePageController.hasClients) {
+      _mobilePageController.dispose();
+      _mobilePageController = PageController(initialPage: targetIndex);
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _mobilePageController.hasClients) {
-        final catIndex = _categories.indexOf(_selectedCategory);
-        if (catIndex != -1 && _mobilePageController.page?.round() != catIndex) {
-          _mobilePageController.jumpToPage(catIndex);
+        if (_mobilePageController.page?.round() != targetIndex) {
+          _mobilePageController.jumpToPage(targetIndex);
         }
       }
     });
