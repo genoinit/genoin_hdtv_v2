@@ -91,7 +91,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
         style: TextStyle(
           fontSize: isDesktop ? 10 : 11,
           color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFF667EEA))
+              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
               : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
           fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
         ),
@@ -111,7 +111,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
         style: TextStyle(
           fontSize: isDesktop ? 10 : 11,
           color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFF667EEA))
+              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
               : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
           fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
         ),
@@ -130,7 +130,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
         style: TextStyle(
           fontSize: isDesktop ? 10 : 11,
           color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFF667EEA))
+              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
               : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
           fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
         ),
@@ -140,7 +140,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
             text: match,
             style: const TextStyle(
               color: Color(0xFFA5B4FC),
-              backgroundColor: Color(0x2E667EEA), // rgba(102,126,234,0.18)
+              backgroundColor: Color(0x2EF59E0B), // rgba(245,158,11,0.18)
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -154,7 +154,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     const fallbackLogo = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2228%22%3ETV%3C/text%3E%3C/svg%3E';
 
-    final logoSize = widget.isDesktop ? 55.0 : 64.0;
+    final logoSize = widget.isDesktop ? 55.0 : 52.0;
     
     // Desktop layout
     if (widget.isDesktop) {
@@ -174,7 +174,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
                     builder: (context, child) {
                       return CustomPaint(
                         painter: widget.isActive 
-                            ? _CustomPulsePainter(_pulseController.value, const Color(0xFF667EEA))
+                            ? _CustomPulsePainter(_pulseController.value, const Color(0xFFF59E0B))
                             : null,
                         child: Container(
                           width: logoSize,
@@ -185,7 +185,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
                             color: Colors.white.withOpacity(0.08),
                             border: Border.all(
                               color: widget.isActive 
-                                  ? const Color(0xFF667EEA) 
+                                  ? const Color(0xFFF59E0B) 
                                   : Colors.white.withOpacity(0.15),
                               width: 2.0,
                             ),
@@ -261,7 +261,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
                 builder: (context, child) {
                   return CustomPaint(
                     painter: widget.isActive 
-                        ? _CustomPulsePainter(_pulseController.value, const Color(0xFF667EEA))
+                        ? _CustomPulsePainter(_pulseController.value, const Color(0xFFF59E0B))
                         : null,
                     child: Container(
                       width: logoSize,
@@ -272,7 +272,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
                         color: const Color(0xFFEFEFEF), // Off-white backdrop for mobile (rgba(255,255,255,0.92))
                         border: Border.all(
                           color: widget.isActive 
-                              ? const Color(0xFF667EEA) 
+                              ? const Color(0xFFF59E0B) 
                               : Colors.white.withOpacity(0.15),
                           width: 2.0,
                         ),

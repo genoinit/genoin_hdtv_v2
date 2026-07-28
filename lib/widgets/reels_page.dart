@@ -286,7 +286,7 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF667EEA).withOpacity(0.85),
+                                color: const Color(0xFFF59E0B).withOpacity(0.85),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Colors.white.withOpacity(0.15),

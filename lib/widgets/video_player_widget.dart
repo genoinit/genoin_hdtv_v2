@@ -110,6 +110,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void initState() {
     super.initState();
     _showControls = !widget.reelsMode;
+    _currentQuality = AppStorage.getPreferredQuality(); // Load saved quality preference from local storage
     _currentPlayUrl = widget.channel.streamUrl;
     _initializePlayer();
     if (widget.externalErrorTitle != null) {
@@ -150,7 +151,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     }
     if (widget.channel.streamUrl != oldWidget.channel.streamUrl || widget.channel.name != oldWidget.channel.name) {
       _hlsQualities = {};
-      _currentQuality = 'Auto';
+      _currentQuality = AppStorage.getPreferredQuality(); // Retain saved quality preference across stream changes
       _currentPlayUrl = widget.channel.streamUrl;
       _initializePlayer();
     } else {
@@ -168,6 +169,39 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       setState(() {
         _hlsQualities = parsed;
       });
+
+      // If user saved a preferred quality like '240p' or '480p' in local storage, automatically match it to this new stream!
+      final pref = AppStorage.getPreferredQuality();
+      if (pref != 'Auto') {
+        final cleanNum = pref.replaceAll(RegExp(r'[^\d]'), '');
+        String? matchedUrl;
+        
+        for (var entry in parsed.entries) {
+          final keyNum = entry.key.replaceAll(RegExp(r'[^\d]'), '');
+          if (keyNum == cleanNum) {
+            matchedUrl = entry.value;
+            break;
+          }
+        }
+
+        if (matchedUrl == null && parsed.isNotEmpty) {
+          int targetInt = int.tryParse(cleanNum) ?? 720;
+          int minDiff = 99999;
+          for (var entry in parsed.entries) {
+            int h = int.tryParse(entry.key.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+            int diff = (h - targetInt).abs();
+            if (diff < minDiff) {
+              minDiff = diff;
+              matchedUrl = entry.value;
+            }
+          }
+        }
+
+        if (matchedUrl != null && matchedUrl != _currentPlayUrl) {
+          _currentPlayUrl = matchedUrl;
+          _initializePlayer();
+        }
+      }
     }
   }
 
@@ -175,7 +209,33 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     if (quality == 'Auto') {
       _currentPlayUrl = widget.channel.streamUrl;
     } else {
-      _currentPlayUrl = _hlsQualities[quality] ?? widget.channel.streamUrl;
+      final cleanNum = quality.replaceAll(RegExp(r'[^\d]'), '');
+      String? matchedUrl;
+      
+      // Look for exact key match (e.g. '1080' or '1080p')
+      for (var entry in _hlsQualities.entries) {
+        final keyNum = entry.key.replaceAll(RegExp(r'[^\d]'), '');
+        if (keyNum == cleanNum) {
+          matchedUrl = entry.value;
+          break;
+        }
+      }
+      
+      // If exact target height isn't in playlist, pick nearest available height
+      if (matchedUrl == null && _hlsQualities.isNotEmpty) {
+        int targetInt = int.tryParse(cleanNum) ?? 720;
+        int minDiff = 99999;
+        for (var entry in _hlsQualities.entries) {
+          int h = int.tryParse(entry.key.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+          int diff = (h - targetInt).abs();
+          if (diff < minDiff) {
+            minDiff = diff;
+            matchedUrl = entry.value;
+          }
+        }
+      }
+
+      _currentPlayUrl = matchedUrl ?? widget.channel.streamUrl;
     }
     setState(() {
       _currentQuality = quality;

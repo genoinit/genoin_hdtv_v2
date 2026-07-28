@@ -88,7 +88,7 @@ class _OfflinePageState extends State<OfflinePage> with SingleTickerProviderStat
                 color: Colors.transparent,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF667EEA).withOpacity(0.08),
+                    color: const Color(0xFFF59E0B).withOpacity(0.08),
                     blurRadius: 120,
                     spreadRadius: 40,
                   ),
@@ -108,7 +108,7 @@ class _OfflinePageState extends State<OfflinePage> with SingleTickerProviderStat
                 color: Colors.transparent,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF764BA2).withOpacity(0.08),
+                    color: const Color(0xFFEF4444).withOpacity(0.08),
                     blurRadius: 120,
                     spreadRadius: 40,
                   ),
@@ -129,7 +129,7 @@ class _OfflinePageState extends State<OfflinePage> with SingleTickerProviderStat
                       width: 90,
                       height: 90,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E2F),
+                        color: const Color(0xFF1C1917),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: const Color(0xFFEF4444).withOpacity(0.4),
@@ -181,14 +181,14 @@ class _OfflinePageState extends State<OfflinePage> with SingleTickerProviderStat
                       height: 48,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                          colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF667EEA).withOpacity(0.3),
+                            color: const Color(0xFFF59E0B).withOpacity(0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 4),
                           ),

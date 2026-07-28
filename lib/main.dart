@@ -142,12 +142,12 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0E0E16),
-        primaryColor: const Color(0xFF667EEA),
+        scaffoldBackgroundColor: const Color(0xFF0C0A09),
+        primaryColor: const Color(0xFFF59E0B),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF667EEA),
-          background: Color(0xFF0E0E16),
-          surface: Color(0xFF0F0F1B),
+          primary: Color(0xFFF59E0B),
+          background: Color(0xFF0C0A09),
+          surface: Color(0xFF1C1917),
         ),
         // Match premium visual feel of index.html by omitting heavy click highlights
         splashColor: Colors.transparent,
@@ -156,7 +156,18 @@ class _MyAppState extends State<MyApp> {
         fontFamily: 'sans-serif',
       ),
       home: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 450),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+          return Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
         child: _buildCurrentPage(),
       ),
     );
@@ -180,15 +191,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     
-    // Force transparent edge-to-edge system bars during splash loading
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ));
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -257,7 +259,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07070D),
+      backgroundColor: const Color(0xFF0C0A09),
       body: Stack(
         children: [
           Center(
@@ -286,15 +288,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFF667EEA),
-                          Color(0xFF5A6FD6),
+                          Color(0xFFF59E0B),
+                          Color(0xFFEF4444),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF667EEA).withOpacity(0.3),
+                          color: const Color(0xFFF59E0B).withOpacity(0.35),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -334,7 +336,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       'HDTV',
                       style: TextStyle(
                         fontStyle: FontStyle.italic,
-                        color: Color(0xFF667EEA),
+                        color: Color(0xFFF59E0B),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.0,
@@ -348,7 +350,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   width: 32,
                   height: 32,
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                     strokeWidth: 2.5,
                   ),
                 ),

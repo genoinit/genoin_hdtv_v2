@@ -90,7 +90,7 @@ class _CategoryTabsState extends State<CategoryTabs> {
           
           // Replicate capitalization logic from HTML
           String displayName = cat;
-          if (cat != '⭐ Favorites' && cat != '🕒 Recent') {
+          if (cat != '⭐ Favorites' && cat != '🕒 Recent' && cat != '📺 All Channels') {
             displayName = cat.isNotEmpty 
                 ? cat[0].toUpperCase() + cat.substring(1) 
                 : '';
@@ -120,7 +120,7 @@ class _CategoryTabsState extends State<CategoryTabs> {
                   Container(
                     height: 2,
                     width: 30,
-                    color: isActive ? const Color(0xFF667EEA) : Colors.transparent,
+                    color: isActive ? const Color(0xFFF59E0B) : Colors.transparent,
                   ),
                 ],
               ),

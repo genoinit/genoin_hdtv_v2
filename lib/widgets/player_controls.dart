@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/storage.dart';
 
 class PlayerControls extends StatelessWidget {
   final bool isPlaying;
@@ -19,8 +20,8 @@ class PlayerControls extends StatelessWidget {
   final bool reelsMode;
   final VoidCallback? onEnterReels;
 
-  final String? epgText; // New EPG parameter!
-  final String currentQuality; // New Quality selection parameters!
+  final String? epgText;
+  final String currentQuality;
   final List<String> availableQualities;
   final ValueChanged<String> onQualityChanged;
   final bool autoSwitchingEnabled;
@@ -55,6 +56,8 @@ class PlayerControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool showChannelNav = !reelsMode && (isFullscreen || !isMobile);
+
     return Stack(
       children: [
         // Controls visibility fade
@@ -65,155 +68,210 @@ class PlayerControls extends StatelessWidget {
             ignoring: !showControls,
             child: Stack(
               children: [
-                // Bottom controls row with linear dark gradient backplate (wrapped to swallow tap bubbles)
+                // Compact Glassmorphic Floating Pill Control Bar with Larger Icons & Zero Gaps
                 Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
+                  bottom: reelsMode
+                      ? 125.0 + MediaQuery.of(context).padding.bottom
+                      : (isMobile && !isFullscreen)
+                          ? 12.0
+                          : 24.0 + MediaQuery.of(context).padding.bottom,
+                  left: 8.0 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.left : 0),
+                  right: 8.0 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.right : 0),
                   child: GestureDetector(
-                    onTap: () {}, // Swallows taps so they don't propagate to the root video container
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        left: 12 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.left : 0),
-                        right: 12 + ((isFullscreen || reelsMode) ? MediaQuery.of(context).padding.right : 0),
-                        top: (isFullscreen || reelsMode) ? 10 : 6,
-                        bottom: (isFullscreen || reelsMode) ? 10 + MediaQuery.of(context).padding.bottom : 6,
-                      ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black87,
+                    onTap: () {}, // Swallows taps so they don't toggle overlay
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: (isMobile && !isFullscreen) ? 8.0 : 12.0,
+                          vertical: (isMobile && !isFullscreen) ? 4.0 : 6.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xDC1C1917), // index.html --bg-surface
+                          borderRadius: BorderRadius.circular(50.0),
+                          border: Border.all(
+                            color: const Color(0x3FF59E0B), // index.html --border-subtle amber
+                            width: 1.0,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black54,
+                              blurRadius: 14,
+                              spreadRadius: 1,
+                            ),
                           ],
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          // Auto-Switching Toggle Button (Left of Play/Pause)
-                          IconButton(
-                            onPressed: onAutoSwitchingToggle,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            icon: Icon(
-                              autoSwitchingEnabled
-                                  ? Icons.sync
-                                  : Icons.sync_disabled,
-                            ),
-                            color: autoSwitchingEnabled
-                                ? const Color(0xFF667EEA)
-                                : Colors.white.withOpacity(0.4),
-                            iconSize: 18,
-                            tooltip: autoSwitchingEnabled
-                                ? 'Auto-Switching: Enabled'
-                                : 'Auto-Switching: Disabled',
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                          ),
-                          
-                          // Play/Pause Button
-                          IconButton(
-                            onPressed: onPlayPauseToggle,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                            color: Colors.white,
-                            iconSize: 20,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                          ),
-                          
-                          // Volume Mute/Slider Row
-                          IconButton(
-                            onPressed: onMuteToggle,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            icon: Icon(
-                              isMuted || volume == 0
-                                  ? Icons.volume_off
-                                  : volume < 0.5
-                                      ? Icons.volume_down
-                                      : Icons.volume_up,
-                            ),
-                            color: Colors.white,
-                            iconSize: 18,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                          ),
-                          
-                          // Volume custom slider
-                          _buildVolumeSlider(),
-
-                          const Spacer(),
-
-                           // Aspect Ratio Cycle Button (only shown in fullscreen or desktop landscape mode)
-                          if (isFullscreen || !isMobile)
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // 1. Auto-Switching Toggle Button (Larger Icon: 20px)
                             IconButton(
-                              onPressed: () {
-                                BoxFit nextFit;
-                                if (videoFit == BoxFit.contain) {
-                                  nextFit = BoxFit.cover;
-                                } else if (videoFit == BoxFit.cover) {
-                                  nextFit = BoxFit.fill;
-                                } else {
-                                  nextFit = BoxFit.contain;
-                                }
-                                onVideoFitChanged(nextFit);
-                              },
+                              onPressed: onAutoSwitchingToggle,
                               padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                               icon: Icon(
-                                videoFit == BoxFit.contain
-                                    ? Icons.aspect_ratio
-                                    : videoFit == BoxFit.cover
-                                        ? Icons.fullscreen
-                                        : Icons.fit_screen,
+                                autoSwitchingEnabled
+                                    ? Icons.sync
+                                    : Icons.sync_disabled,
                               ),
-                              color: Colors.white,
-                              iconSize: 18,
-                              tooltip: videoFit == BoxFit.contain
-                                  ? 'Fit'
-                                  : videoFit == BoxFit.cover
-                                      ? 'Full'
-                                      : 'Stretch',
+                              color: autoSwitchingEnabled
+                                  ? const Color(0xFFF59E0B)
+                                  : Colors.white.withOpacity(0.5),
+                              iconSize: 20,
+                              tooltip: autoSwitchingEnabled
+                                  ? 'Auto-Switching: Enabled'
+                                  : 'Auto-Switching: Disabled',
                               splashColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                             ),
 
-                          // Quality Selector Button (only shown if multiple resolutions are available)
-                          if (availableQualities.isNotEmpty)
+                            // 2. Play / Pause Button (Larger Icon: 22px)
+                            IconButton(
+                              onPressed: onPlayPauseToggle,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                              color: Colors.white,
+                              iconSize: 22,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                            ),
+
+                            // 3. Mute / Unmute Button (Larger Icon: 20px)
+                            IconButton(
+                              onPressed: onMuteToggle,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                              icon: Icon(
+                                isMuted || volume == 0
+                                    ? Icons.volume_off
+                                    : volume < 0.5
+                                        ? Icons.volume_down
+                                        : Icons.volume_up,
+                              ),
+                              color: Colors.white,
+                              iconSize: 20,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                            ),
+
+                            // 4. Volume Slider (Zero gap to mute button)
+                            _buildVolumeSlider(),
+
+                            // 5. Middle Group: Connected Channel Nav Pill (Landscape / Desktop)
+                            if (showChannelNav) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(50),
+                                  border: Border.all(color: Colors.white.withOpacity(0.12)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      onPressed: onPreviousChannel,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                      icon: const Icon(Icons.chevron_left, color: Colors.white, size: 22),
+                                      tooltip: 'Previous Channel',
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0x33F59E0B),
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                      child: IconButton(
+                                        onPressed: onListPanelToggle,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                        icon: const Icon(Icons.list, color: Color(0xFFF59E0B), size: 22),
+                                        tooltip: 'Open Playlist',
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: onNextChannel,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                      icon: const Icon(Icons.chevron_right, color: Colors.white, size: 22),
+                                      tooltip: 'Next Channel',
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+
+                            // 6. Aspect Ratio Cycle Button (Larger Icon: 20px)
+                            if (isFullscreen || !isMobile)
+                              IconButton(
+                                onPressed: () {
+                                  BoxFit nextFit;
+                                  if (videoFit == BoxFit.contain) {
+                                    nextFit = BoxFit.cover;
+                                  } else if (videoFit == BoxFit.cover) {
+                                    nextFit = BoxFit.fill;
+                                  } else {
+                                    nextFit = BoxFit.contain;
+                                  }
+                                  onVideoFitChanged(nextFit);
+                                },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                icon: Icon(
+                                  videoFit == BoxFit.contain
+                                      ? Icons.aspect_ratio
+                                      : videoFit == BoxFit.cover
+                                          ? Icons.fullscreen
+                                          : Icons.fit_screen,
+                                ),
+                                color: Colors.white,
+                                iconSize: 20,
+                                tooltip: videoFit == BoxFit.contain ? 'Fit' : videoFit == BoxFit.cover ? 'Full' : 'Stretch',
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                              ),
+
+                            // 7. Quality Selector Button (Always Visible, Larger Icon: 15px, Zero outer margin)
                             Theme(
                               data: Theme.of(context).copyWith(
-                                cardColor: const Color(0xFF0F0F1B),
+                                cardColor: const Color(0xFF1C1917),
                               ),
                               child: PopupMenuButton<String>(
                                 initialValue: currentQuality,
                                 tooltip: 'Select Quality',
                                 position: PopupMenuPosition.over,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: Colors.white.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: const BorderSide(
+                                    color: Color(0x3FF59E0B),
                                   ),
                                 ),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const Icon(
                                         Icons.tune,
-                                        color: Colors.white,
-                                        size: 16,
+                                        color: Color(0xFFF59E0B),
+                                        size: 15,
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 2),
                                       Text(
-                                        currentQuality == 'Auto' ? 'Auto' : '${currentQuality}p',
+                                        currentQuality == 'Auto'
+                                            ? 'Auto'
+                                            : (currentQuality.endsWith('p') ? currentQuality : '${currentQuality}p'),
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 12,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -222,23 +280,28 @@ class PlayerControls extends StatelessWidget {
                                 ),
                                 onSelected: onQualityChanged,
                                 itemBuilder: (BuildContext context) {
-                                  return ['Auto', ...availableQualities].map((String val) {
+                                  final List<String> qualityOptions = availableQualities.isEmpty
+                                      ? ['Auto']
+                                      : ['Auto', '1080p', '480p', '240p'];
+
+                                  return qualityOptions.map((String val) {
                                     final isSelected = val == currentQuality;
                                     return PopupMenuItem<String>(
                                       value: val,
+                                      height: 32,
                                       child: Row(
                                         children: [
                                           Icon(
                                             Icons.check,
-                                            color: const Color(0xFF667EEA).withOpacity(isSelected ? 1.0 : 0.0),
+                                            color: const Color(0xFFF59E0B).withOpacity(isSelected ? 1.0 : 0.0),
                                             size: 12,
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           Text(
-                                            val == 'Auto' ? 'Auto (Adaptive)' : '${val}p',
+                                            val,
                                             style: TextStyle(
-                                              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-                                              fontSize: 13,
+                                              color: isSelected ? const Color(0xFFF59E0B) : Colors.white.withOpacity(0.8),
+                                              fontSize: 12,
                                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                                             ),
                                           ),
@@ -250,64 +313,41 @@ class PlayerControls extends StatelessWidget {
                               ),
                             ),
 
-                          // Fullscreen Toggle Button
-                          IconButton(
-                            onPressed: onFullscreenToggle,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            icon: Icon(isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
-                            color: Colors.white,
-                            iconSize: 18,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Channel Navigation circular overlay above bottom controls (wrapped to swallow tap bubbles)
-                if (!reelsMode && (isFullscreen || !isMobile))
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 70 + MediaQuery.of(context).padding.bottom,
-                    child: GestureDetector(
-                      onTap: () {}, // Swallows taps so they don't propagate to the root video container
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Prev Button
-                            _buildNavButton(Icons.chevron_left, onPreviousChannel),
-                            const SizedBox(width: 12),
-                            // List Panel Toggle Button
-                            _buildNavButton(Icons.grid_view, onListPanelToggle, isMain: true),
-                            const SizedBox(width: 12),
-                            // Next Button
-                            _buildNavButton(Icons.chevron_right, onNextChannel),
+                            // 8. Fullscreen Toggle Button (Larger Icon: 20px)
+                            IconButton(
+                              onPressed: onFullscreenToggle,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                              icon: Icon(isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
+                              color: Colors.white,
+                              iconSize: 20,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                // EPG Live Program display (above bottom bar, below chevrons if shown)
+                // EPG Live Program display (above bottom floating pill bar)
                 if (epgText != null && epgText!.isNotEmpty)
                   Positioned(
-                    left: 16 + MediaQuery.of(context).padding.left,
-                    bottom: (isFullscreen || (!isMobile && !reelsMode))
-                        ? 130 + MediaQuery.of(context).padding.bottom
-                        : 70 + MediaQuery.of(context).padding.bottom,
+                    left: 14 + MediaQuery.of(context).padding.left,
+                    bottom: reelsMode
+                        ? 165.0 + MediaQuery.of(context).padding.bottom
+                        : (isMobile && !isFullscreen)
+                            ? 48.0
+                            : 64.0 + MediaQuery.of(context).padding.bottom,
                     child: IgnorePointer(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.55),
-                          borderRadius: BorderRadius.circular(6),
+                          color: const Color(0xCC1C1917),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.08),
+                            color: const Color(0x3FF59E0B),
                           ),
                         ),
                         child: Row(
@@ -315,15 +355,15 @@ class PlayerControls extends StatelessWidget {
                           children: [
                             const Icon(
                               Icons.access_time,
-                              color: Color(0xFF667EEA),
-                              size: 13,
+                              color: Color(0xFFF59E0B),
+                              size: 11,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
                               epgText!,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -336,18 +376,22 @@ class PlayerControls extends StatelessWidget {
                 // Mobile Reels Toggle (positioned in top-right corner)
                 if (isMobile && !reelsMode && onEnterReels != null)
                   Positioned(
-                    top: isFullscreen ? 12 + MediaQuery.of(context).padding.top : 8,
-                    right: isFullscreen ? 12 + MediaQuery.of(context).padding.right : 8,
+                    top: isFullscreen ? 10 + MediaQuery.of(context).padding.top : 6,
+                    right: isFullscreen ? 10 + MediaQuery.of(context).padding.right : 6,
                     child: GestureDetector(
-                      onTap: () {}, // Swallows taps to prevent video player controls toggling
+                      onTap: () {}, // Swallows taps
                       child: Container(
+                        padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.55),
+                          color: const Color(0xCC1C1917),
                           shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0x3FF59E0B)),
                         ),
                         child: IconButton(
                           onPressed: onEnterReels,
-                          icon: const Icon(Icons.stay_current_portrait, color: Colors.white, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                          icon: const Icon(Icons.stay_current_portrait, color: Color(0xFFF59E0B), size: 16),
                           tooltip: 'Reels Mode',
                           splashColor: Colors.transparent,
                           highlightColor: Colors.transparent,
@@ -364,76 +408,76 @@ class PlayerControls extends StatelessWidget {
   }
 
   Widget _buildVolumeSlider() {
+    final double sliderWidth = (isMobile && !isFullscreen) ? 36.0 : 42.0;
+
     return Builder(
       builder: (context) {
         return GestureDetector(
           onHorizontalDragUpdate: (details) {
             final RenderBox box = context.findRenderObject() as RenderBox;
             final double localX = box.globalToLocal(details.globalPosition).dx;
-            final double newVol = (localX / 70.0).clamp(0.0, 1.0);
+            final double newVol = (localX / sliderWidth).clamp(0.0, 1.0);
             onVolumeChanged(newVol);
           },
           onTapDown: (details) {
             final RenderBox box = context.findRenderObject() as RenderBox;
             final double localX = box.globalToLocal(details.globalPosition).dx;
-            final double newVol = (localX / 70.0).clamp(0.0, 1.0);
+            final double newVol = (localX / sliderWidth).clamp(0.0, 1.0);
             onVolumeChanged(newVol);
           },
           child: Container(
-            width: 70,
-            height: 24,
+            width: sliderWidth,
+            height: 20,
             color: Colors.transparent,
             alignment: Alignment.center,
-            child: Container(
-              width: 70,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
               alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: isMuted ? 0.0 : volume,
-                child: Container(
+              children: [
+                // Track background
+                Container(
+                  width: sliderWidth,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
+                // Active fill track
+                Container(
+                  width: (isMuted ? 0.0 : volume) * sliderWidth,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Circular thumb handle
+                if (!isMuted && volume > 0)
+                  Positioned(
+                    left: (((isMuted ? 0.0 : volume) * sliderWidth) - 4).clamp(0.0, sliderWidth - 8),
+                    top: 6,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black45,
+                            blurRadius: 3,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         );
-      }
-    );
-  }
-
-  Widget _buildNavButton(IconData icon, VoidCallback onTap, {bool isMain = false}) {
-    final size = isMain ? 54.0 : 46.0;
-    final border = Border.all(
-      color: Colors.white.withOpacity(isMain ? 0.4 : 0.35),
-      width: 1.5,
-    );
-    final bgColor = isMain 
-        ? const Color(0xFF667EEA).withOpacity(0.3) 
-        : Colors.black.withOpacity(0.6);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: bgColor,
-          border: border,
-        ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 16,
-        ),
-      ),
+      },
     );
   }
 }

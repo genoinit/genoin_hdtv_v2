@@ -78,7 +78,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
             color: Colors.white.withOpacity(0.06),
             border: Border.all(
               color: _hasFocus 
-                  ? const Color(0xFF667EEA).withOpacity(0.65) 
+                  ? const Color(0xFFF59E0B).withOpacity(0.65) 
                   : Colors.white.withOpacity(0.1),
             ),
             borderRadius: BorderRadius.circular(10),
@@ -133,13 +133,13 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF667EEA).withOpacity(0.15),
+                    color: const Color(0xFFF59E0B).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '${widget.resultCount} found',
                     style: const TextStyle(
-                      color: Color(0xFF667EEA),
+                      color: Color(0xFFF59E0B),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -228,7 +228,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   Widget _buildPlaylistDropdown() {
     return Theme(
       data: Theme.of(context).copyWith(
-        cardColor: const Color(0xFF0F0F1B),
+        cardColor: const Color(0xFF1C1917),
       ),
       child: PopupMenuButton<Playlist>(
         initialValue: widget.selectedPlaylist,
@@ -248,7 +248,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
             children: [
               const Icon(
                 Icons.dns,
-                color: Color(0xFF667EEA),
+                color: Color(0xFFF59E0B),
                 size: 14,
               ),
               const SizedBox(width: 6),
@@ -286,7 +286,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   children: [
                     Icon(
                       Icons.check,
-                      color: const Color(0xFF667EEA).withOpacity(isSelected ? 1.0 : 0.0),
+                      color: const Color(0xFFF59E0B).withOpacity(isSelected ? 1.0 : 0.0),
                       size: 12,
                     ),
                     const SizedBox(width: 8),

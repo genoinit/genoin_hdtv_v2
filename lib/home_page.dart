@@ -125,7 +125,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _mobilePageController = PageController();
+    // Default to index 2 ('📺 All Channels')
+    _mobilePageController = PageController(initialPage: 2);
     _loadInitialData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardFocusNode.requestFocus();
@@ -182,29 +183,23 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _rawChannels = data;
       
-      // Setup category tabs list: ["🕒 Recent", "⭐ Favorites", ...parsedCategories]
-      _categories = ['🕒 Recent', '⭐ Favorites', ..._rawChannels.keys];
+      // Setup category tabs list: exactly 3 categories
+      _categories = ['🕒 Recent', '⭐ Favorites', '📺 All Channels'];
       
       _isLoadingPlaylist = false;
-
-      // Select default category: if "General" exists, select it, else select the first key
-      if (_categories.length > 2) {
-        final hasGeneral = _categories.any((c) => c.toLowerCase() == 'general');
-        _selectedCategory = hasGeneral 
-            ? _categories.firstWhere((c) => c.toLowerCase() == 'general') 
-            : _categories[2];
-      } else {
-        _selectedCategory = '⭐ Favorites';
-      }
+      _selectedCategory = '📺 All Channels';
 
       _updateDisplayedChannels();
 
-      // Dispose and recreate PageController with the resolved defaultIndex to avoid initialization jump race conditions
-      final defaultIndex = _categories.indexOf(_selectedCategory);
-      _mobilePageController.dispose();
-      _mobilePageController = PageController(
-        initialPage: defaultIndex != -1 ? defaultIndex : 0,
-      );
+      // Safely sync PageController to defaultIndex after layout frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _mobilePageController.hasClients) {
+          final defaultIndex = _categories.indexOf(_selectedCategory);
+          if (defaultIndex != -1 && _mobilePageController.page?.round() != defaultIndex) {
+            _mobilePageController.jumpToPage(defaultIndex);
+          }
+        }
+      });
 
       // Play first channel on startup load only
       if (autoPlay && _displayedChannels.isNotEmpty) {
@@ -241,7 +236,19 @@ class _HomePageState extends State<HomePage> {
       } else if (_selectedCategory == '🕒 Recent') {
         _displayedChannels = _recents;
       } else {
-        _displayedChannels = _rawChannels[_selectedCategory] ?? [];
+        // "📺 All Channels": Combine all channels from all categories at once
+        final allCh = <Channel>[];
+        final seenKeys = <String>{};
+        _rawChannels.forEach((cat, chList) {
+          for (var ch in chList) {
+            final key = ch.urls.isNotEmpty ? ch.urls.first : ch.name;
+            if (!ch.isAPK && !seenKeys.contains(key)) {
+              seenKeys.add(key);
+              allCh.add(ch);
+            }
+          }
+        });
+        _displayedChannels = allCh;
       }
     }
   }
@@ -339,6 +346,7 @@ class _HomePageState extends State<HomePage> {
   bool _hasChannels(String cat) {
     if (cat == '⭐ Favorites') return _favorites.isNotEmpty;
     if (cat == '🕒 Recent') return _recents.isNotEmpty;
+    if (cat == '📺 All Channels') return _rawChannels.isNotEmpty;
     return (_rawChannels[cat] ?? []).isNotEmpty;
   }
 
@@ -373,6 +381,19 @@ class _HomePageState extends State<HomePage> {
       return favs;
     } else if (category == '🕒 Recent') {
       return _recents;
+    } else if (category == '📺 All Channels') {
+      final allCh = <Channel>[];
+      final seenKeys = <String>{};
+      _rawChannels.forEach((cat, chList) {
+        for (var ch in chList) {
+          final key = ch.urls.isNotEmpty ? ch.urls.first : ch.name;
+          if (!ch.isAPK && !seenKeys.contains(key)) {
+            seenKeys.add(key);
+            allCh.add(ch);
+          }
+        }
+      });
+      return allCh;
     } else {
       return _rawChannels[category] ?? [];
     }
@@ -599,7 +620,7 @@ class _HomePageState extends State<HomePage> {
                 body: _isLoadingPlaylist
                     ? const Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                         ),
                       )
                     : isDesktop || isMobileLandscape
@@ -667,21 +688,29 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                // Sliding Bottom Tray Panel Overlay
+                // Sliding Bottom Tray Panel Overlay (Landscape Mode Grid Window)
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  bottom: _showDesktopTray ? 12 : -280,
+                  bottom: _showDesktopTray ? 12 : -320,
                   left: 12,
                   right: 12,
-                  height: 260,
+                  height: 290,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xF50A0A14), // rgba(10,10,20,0.96)
+                      color: const Color(0xFA1C1917), // index.html --bg-surface #1C1917
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.08),
+                        color: const Color(0x3FF59E0B), // index.html --border-subtle amber
+                        width: 1.0,
                       ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black87,
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -720,7 +749,7 @@ class _HomePageState extends State<HomePage> {
                           child: _rawChannels.isEmpty
                               ? const Center(
                                   child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                                   ),
                                 )
                               : ChannelGrid(
@@ -737,7 +766,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                         ),
 
-                        // Downward chevron panel closer
+                        // Collapse button area with 50% transparent background, arrow icon, and "Tap Here to Close This" text
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -745,19 +774,47 @@ class _HomePageState extends State<HomePage> {
                             });
                           },
                           child: Container(
-                            height: 32,
+                            height: 42,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             alignment: Alignment.center,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
+                              color: Color(0x801C1917), // 50% transparent background (rgba(28, 25, 23, 0.50))
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(15),
+                                bottomRight: Radius.circular(15),
+                              ),
                               border: Border(
                                 top: BorderSide(
-                                  color: Colors.white.withOpacity(0.08),
+                                  color: Color(0x3FF59E0B),
+                                  width: 1.0,
                                 ),
                               ),
                             ),
-                            child: Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.white.withOpacity(0.5),
-                              size: 20,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Color(0xFFF59E0B),
+                                  size: 22,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Tap Here to Close This',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Color(0xFFF59E0B),
+                                  size: 22,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -863,7 +920,7 @@ class _HomePageState extends State<HomePage> {
                   child: Padding(
                     padding: EdgeInsets.only(top: 60.0),
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                     ),
                   ),
                 )
@@ -1007,9 +1064,76 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
         ),
-        // Push the content up to prevent bottom grid items from drawing under the bottom navigation bar area
+        // Fixed Footer Developer Credits at the bottom position of the screen
+        _buildDevCredits(),
+        // Push content above device system navigation bar
         SizedBox(height: MediaQuery.of(context).padding.bottom),
       ],
+    );
+  }
+
+  Widget _buildDevCredits() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1917), // index.html --bg-surface #1C1917
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0x3FF59E0B), // index.html --border-subtle amber
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Developed By: ',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.65),
+                  fontSize: 11,
+                ),
+              ),
+              const Text(
+                'Saidur R.',
+                style: TextStyle(
+                  color: Color(0xFFF59E0B), // Amber gold accent
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSocialButton(
+                icon: Icons.facebook,
+                color: const Color(0xFF1877F2),
+                url: 'https://www.facebook.com/Thesaidursumon',
+                tooltip: 'Facebook',
+              ),
+              const SizedBox(width: 8),
+              _buildSocialButton(
+                icon: Icons.send,
+                color: const Color(0xFF0088CC),
+                url: 'https://t.me/thesaidursumon',
+                tooltip: 'Telegram',
+              ),
+              const SizedBox(width: 8),
+              _buildSocialButton(
+                icon: Icons.chat,
+                color: const Color(0xFF25D366),
+                url: 'https://wa.me/8801891965724',
+                tooltip: 'WhatsApp',
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
