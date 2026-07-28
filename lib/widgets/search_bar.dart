@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/constants.dart';
 import '../models/playlist.dart';
 
 class CustomSearchBar extends StatefulWidget {
@@ -71,36 +72,37 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search Row Container
-        Container(
-          height: 48,
+        // Search Row Container styled same-to-same with Orange app SearchBarWidget
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
+            color: AppColors.bgCard,
             border: Border.all(
-              color: _hasFocus 
-                  ? const Color(0xFFF59E0B).withOpacity(0.65) 
-                  : Colors.white.withOpacity(0.1),
+              color: _hasFocus ? AppColors.accent : AppColors.borderSubtle,
+              width: 1,
             ),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusPill),
           ),
           child: Row(
             children: [
-              // Playlist Selector
+              // Server / Playlist Selector Dropdown (Orange app style)
               _buildPlaylistDropdown(),
-              
+
               // Vertical Divider
               Container(
                 width: 1,
-                height: 24,
-                color: Colors.white.withOpacity(0.15),
+                height: 22,
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                color: AppColors.borderSubtle,
               ),
-              const SizedBox(width: 10),
 
               // Search Icon
-              Icon(
+              const Icon(
                 Icons.search,
-                color: Colors.white.withOpacity(0.45),
-                size: 18,
+                color: AppColors.textMuted,
+                size: 15,
               ),
               const SizedBox(width: 8),
 
@@ -110,66 +112,69 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   controller: _controller,
                   focusNode: _focusNode,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 14,
+                    fontFamily: 'sans-serif',
                   ),
-                  decoration: InputDecoration(
-                    hintText: 'Search channel...',
+                  decoration: const InputDecoration(
+                    hintText: 'Search...',
                     hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
+                      color: AppColors.textMuted,
+                      fontSize: 14,
                     ),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    contentPadding: EdgeInsets.zero,
                   ),
                   onChanged: widget.onQueryChanged,
                   onSubmitted: widget.onSearchSubmitted,
                 ),
               ),
 
-              // Search Count Badge
+              // Search Count Badge (Orange app style)
               if (widget.searchMode && widget.query.trim().isNotEmpty)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  margin: const EdgeInsets.only(right: 8),
+                  margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withOpacity(0.15),
+                    color: AppColors.accent.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '${widget.resultCount} found',
+                    '${widget.resultCount}',
                     style: const TextStyle(
-                      color: Color(0xFFF59E0B),
+                      color: AppColors.accent,
                       fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
 
               // Clear Button
               if (widget.query.isNotEmpty)
-                IconButton(
-                  onPressed: () {
+                GestureDetector(
+                  onTap: () {
                     _controller.clear();
                     widget.onClearSearch();
                   },
-                  icon: const Icon(Icons.close),
-                  color: Colors.white.withOpacity(0.5),
-                  iconSize: 16,
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(Icons.close, color: AppColors.textMuted, size: 15),
+                  ),
                 ),
             ],
           ),
         ),
 
-        // Recent Searches Chips
+        // Recent Search Chips (Orange app style)
         if (showHistory) ...[
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            runSpacing: 8,
-            children: widget.recentSearches.map((search) {
+            runSpacing: 6,
+            children: widget.recentSearches.map<Widget>((search) {
               return Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -178,39 +183,39 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                     widget.onQueryChanged(search);
                     widget.onSearchSubmitted(search);
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(4),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.07),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.bgSurface,
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      border: Border(
+                        left: BorderSide(color: AppColors.accent, width: 2),
                       ),
-                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.history,
                           size: 12,
-                          color: Colors.white.withOpacity(0.5),
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           search,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         GestureDetector(
                           onTap: () => widget.onRemoveRecent(search),
-                          child: Icon(
+                          child: const Icon(
                             Icons.close,
                             size: 12,
-                            color: Colors.white.withOpacity(0.5),
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -228,7 +233,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   Widget _buildPlaylistDropdown() {
     return Theme(
       data: Theme.of(context).copyWith(
-        cardColor: const Color(0xFF1C1917),
+        cardColor: AppColors.bgCard,
       ),
       child: PopupMenuButton<Playlist>(
         initialValue: widget.selectedPlaylist,
@@ -236,20 +241,20 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
         position: PopupMenuPosition.under,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: Colors.white.withOpacity(0.08),
+          side: const BorderSide(
+            color: AppColors.borderSubtle,
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          constraints: const BoxConstraints(maxWidth: 130),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          constraints: const BoxConstraints(maxWidth: 110),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.dns,
-                color: Color(0xFFF59E0B),
-                size: 14,
+                color: AppColors.accent,
+                size: 13,
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -257,17 +262,17 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   widget.selectedPlaylist.name,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(
+              const Icon(
                 Icons.keyboard_arrow_down,
-                color: Colors.white.withOpacity(0.45),
-                size: 12,
+                color: AppColors.textMuted,
+                size: 14,
               ),
             ],
           ),
@@ -286,7 +291,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   children: [
                     Icon(
                       Icons.check,
-                      color: const Color(0xFFF59E0B).withOpacity(isSelected ? 1.0 : 0.0),
+                      color: AppColors.accent.withOpacity(isSelected ? 1.0 : 0.0),
                       size: 12,
                     ),
                     const SizedBox(width: 8),
@@ -294,7 +299,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       child: Text(
                         playlist.name,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                          color: isSelected ? AppColors.accent : AppColors.textSecondary,
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),

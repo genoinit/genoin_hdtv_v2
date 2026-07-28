@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'core/constants.dart';
 import 'models/channel.dart';
 import 'models/playlist.dart';
 import 'services/playlist_service.dart';
@@ -616,7 +618,7 @@ class _HomePageState extends State<HomePage> {
               onKeyEvent: _handleKeyEvent,
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
-                backgroundColor: const Color(0xFF0E0E16),
+                backgroundColor: AppColors.bgDeep,
                 body: _isLoadingPlaylist
                     ? const Center(
                         child: CircularProgressIndicator(
@@ -882,7 +884,7 @@ class _HomePageState extends State<HomePage> {
 
         // Sticky mobile header (Search & Categories stay fixed at the top)
         Container(
-          color: const Color(0xFF0A0A12),
+          color: AppColors.bgDeep,
           padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
           child: Column(
             children: [

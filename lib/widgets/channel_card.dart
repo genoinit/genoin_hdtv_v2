@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/constants.dart';
 import '../models/channel.dart';
 
 class ChannelCard extends StatefulWidget {
@@ -82,19 +83,20 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
   }
 
   Widget _buildHighlightText(String text, String query, bool isActive, bool isDesktop) {
+    final TextStyle baseStyle = TextStyle(
+      fontSize: isDesktop ? 10.5 : 10.5,
+      color: isActive ? AppColors.accent : AppColors.textSecondary,
+      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+      fontFamily: 'sans-serif',
+    );
+
     if (query.trim().isEmpty) {
       return Text(
         text,
         textAlign: TextAlign.center,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: isDesktop ? 10 : 11,
-          color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
-              : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-        ),
+        style: baseStyle,
       );
     }
 
@@ -108,13 +110,7 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
         textAlign: TextAlign.center,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: isDesktop ? 10 : 11,
-          color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
-              : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-        ),
+        style: baseStyle,
       );
     }
 
@@ -127,20 +123,14 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        style: TextStyle(
-          fontSize: isDesktop ? 10 : 11,
-          color: isActive 
-              ? (isDesktop ? Colors.white : const Color(0xFFF59E0B))
-              : (isDesktop ? Colors.white.withOpacity(0.75) : Colors.white.withOpacity(0.65)),
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-        ),
+        style: baseStyle,
         children: [
           TextSpan(text: before),
           TextSpan(
             text: match,
             style: const TextStyle(
-              color: Color(0xFFA5B4FC),
-              backgroundColor: Color(0x2EF59E0B), // rgba(245,158,11,0.18)
+              color: AppColors.textPrimary,
+              backgroundColor: Color(0x40F59E0B),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -152,194 +142,100 @@ class _ChannelCardState extends State<ChannelCard> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    const fallbackLogo = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2228%22%3ETV%3C/text%3E%3C/svg%3E';
+    final double logoSize = widget.isDesktop ? AppSizes.channelLogoSizeDesktop : AppSizes.channelLogoSize;
 
-    final logoSize = widget.isDesktop ? 55.0 : 52.0;
-    
-    // Desktop layout
-    if (widget.isDesktop) {
-      return InkWell(
-        onTap: widget.onTap,
-        child: SizedBox(
-          width: 68,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Circular logo container
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedBuilder(
-                    animation: _pulseController,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        painter: widget.isActive 
-                            ? _CustomPulsePainter(_pulseController.value, const Color(0xFFF59E0B))
-                            : null,
-                        child: Container(
-                          width: logoSize,
-                          height: logoSize,
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.08),
-                            border: Border.all(
-                              color: widget.isActive 
-                                  ? const Color(0xFFF59E0B) 
-                                  : Colors.white.withOpacity(0.15),
-                              width: 2.0,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: widget.channel.logo.startsWith('data:') 
-                                ? Center(
-                                    child: Text(
-                                      widget.channel.name.substring(0, widget.channel.name.length > 3 ? 3 : widget.channel.name.length).toUpperCase(),
-                                      style: const TextStyle(fontSize: 10, color: Colors.white),
-                                    ),
-                                  )
-                                : Image.network(
-                                    widget.channel.logo,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      color: const Color(0xFF333333),
-                                      alignment: Alignment.center,
-                                      child: const Text('TV', style: TextStyle(color: Color(0xFF777777), fontSize: 18, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  
-                  // Favorite heart badge
-                  if (!widget.channel.isAPK)
-                    Positioned(
-                      top: -4,
-                      right: -4,
-                      child: GestureDetector(
-                        onTap: widget.onFavoriteToggled,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withOpacity(0.65),
-                          ),
-                          child: Icon(
-                            widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: widget.isFavorite ? const Color(0xFFEF4444) : Colors.white.withOpacity(0.85),
-                            size: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              // Name text
-              _buildHighlightText(widget.channel.name, widget.searchQuery, widget.isActive, true),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Mobile layout
     return InkWell(
       onTap: widget.onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Circular logo container
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: widget.isActive 
-                        ? _CustomPulsePainter(_pulseController.value, const Color(0xFFF59E0B))
-                        : null,
-                    child: Container(
-                      width: logoSize,
-                      height: logoSize,
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFEFEFEF), // Off-white backdrop for mobile (rgba(255,255,255,0.92))
-                        border: Border.all(
-                          color: widget.isActive 
-                              ? const Color(0xFFF59E0B) 
-                              : Colors.white.withOpacity(0.15),
-                          width: 2.0,
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 74,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Circular logo container styled same-to-same with Orange app ChannelTile
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: widget.isActive
+                          ? _CustomPulsePainter(_pulseController.value, AppColors.accent)
+                          : null,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: logoSize,
+                        height: logoSize,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFFFFFFF), // White logo backdrop matching Orange app
+                          border: Border.all(
+                            color: widget.isActive ? AppColors.accent : AppColors.borderSubtle,
+                            width: widget.isActive ? 2.0 : 1.0,
+                          ),
+                          boxShadow: widget.isActive
+                              ? const [
+                                  BoxShadow(
+                                    color: AppColors.accentGlow,
+                                    blurRadius: 12,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: ClipOval(
+                          child: widget.channel.logo.startsWith('data:')
+                              ? Center(
+                                  child: Text(
+                                    widget.channel.name.substring(0, widget.channel.name.length > 3 ? 3 : widget.channel.name.length).toUpperCase(),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.bgDeep, fontWeight: FontWeight.bold),
+                                  ),
+                                )
+                              : Image.network(
+                                  widget.channel.logo,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    color: Colors.grey.shade400,
+                                    alignment: Alignment.center,
+                                    child: const Text('TV', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
                         ),
                       ),
-                      child: ClipOval(
-                        child: widget.channel.logo.startsWith('data:') 
-                            ? Center(
-                                child: Text(
-                                  widget.channel.name.substring(0, widget.channel.name.length > 3 ? 3 : widget.channel.name.length).toUpperCase(),
-                                  style: const TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold),
-                                ),
-                              )
-                            : Image.network(
-                                widget.channel.logo,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: const Color(0xFFE0E0E0),
-                                  alignment: Alignment.center,
-                                  child: const Text('TV', style: TextStyle(color: Color(0xFF777777), fontSize: 20, fontWeight: FontWeight.bold)),
-                                ),
-                              ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              
-              // Favorite heart badge
-              if (!widget.channel.isAPK)
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: GestureDetector(
-                    onTap: widget.onFavoriteToggled,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withOpacity(0.65),
-                      ),
-                      child: Icon(
-                        widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: widget.isFavorite ? const Color(0xFFEF4444) : Colors.white.withOpacity(0.85),
-                        size: 12,
+                    );
+                  },
+                ),
+
+                // Star Favorite badge positioned same-to-same with Orange app (bottom-right -2)
+                if (!widget.channel.isAPK)
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: GestureDetector(
+                      onTap: widget.onFavoriteToggled,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.bgSurface,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          widget.isFavorite ? Icons.star : Icons.star_border,
+                          color: widget.isFavorite ? AppColors.accent : AppColors.textMuted,
+                          size: 14,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          // Name text
-          _buildHighlightText(widget.channel.name, widget.searchQuery, widget.isActive, false),
-          const SizedBox(height: 2),
-          // Category label (mobile only)
-          Text(
-            widget.channel.category,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.white.withOpacity(0.35),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            // Channel name text matching Orange app DM Sans 10.5px styling
+            _buildHighlightText(widget.channel.name, widget.searchQuery, widget.isActive, widget.isDesktop),
+          ],
+        ),
       ),
     );
   }

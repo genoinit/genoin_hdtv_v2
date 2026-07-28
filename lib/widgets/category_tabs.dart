@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/constants.dart';
 
 class CategoryTabs extends StatefulWidget {
   final List<String> categories;
@@ -23,7 +24,6 @@ class _CategoryTabsState extends State<CategoryTabs> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    // Scroll to initial active tab once built
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActive(animate: false));
   }
 
@@ -47,9 +47,8 @@ class _CategoryTabsState extends State<CategoryTabs> {
     final index = widget.categories.indexOf(widget.selectedCategory);
     if (index == -1) return;
 
-    // Estimate tab item offsets based on character counts
     double offsetOf(int targetIndex) {
-      double sum = 8.0; // Horizontal list padding left
+      double sum = 8.0;
       for (int i = 0; i < targetIndex; i++) {
         sum += widget.categories[i].length * 7.0 + 32.0;
       }
@@ -75,10 +74,22 @@ class _CategoryTabsState extends State<CategoryTabs> {
     }
   }
 
+  double _getTextWidth(String text, FontWeight weight, double fontSize) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(fontSize: fontSize, fontWeight: weight, fontFamily: 'sans-serif'),
+      ),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size.width;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: 40,
       child: ListView.builder(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
@@ -88,7 +99,6 @@ class _CategoryTabsState extends State<CategoryTabs> {
           final cat = widget.categories[index];
           final isActive = cat == widget.selectedCategory;
           
-          // Replicate capitalization logic from HTML
           String displayName = cat;
           if (cat != '⭐ Favorites' && cat != '🕒 Recent' && cat != '📺 All Channels') {
             displayName = cat.isNotEmpty 
@@ -96,31 +106,30 @@ class _CategoryTabsState extends State<CategoryTabs> {
                 : '';
           }
 
-          return InkWell(
+          return GestureDetector(
             onTap: () => widget.onCategorySelected(cat),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    displayName,
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
                     style: TextStyle(
-                      color: isActive 
-                          ? Colors.white 
-                          : Colors.white.withOpacity(0.45),
-                      fontSize: 13,
+                      fontSize: 13.5,
+                      fontFamily: 'sans-serif',
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                      color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
                     ),
+                    child: Text(displayName),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
+                  const SizedBox(height: 6),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     height: 2,
-                    width: 30,
-                    color: isActive ? const Color(0xFFF59E0B) : Colors.transparent,
+                    width: _getTextWidth(displayName, isActive ? FontWeight.w600 : FontWeight.w500, 13.5),
+                    color: isActive ? AppColors.accent : Colors.transparent,
                   ),
                 ],
               ),

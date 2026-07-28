@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'core/constants.dart';
 import 'home_page.dart';
 import 'utils/storage.dart';
 import 'widgets/offline_page.dart';
@@ -140,21 +141,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'GENOIN HDTV',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0C0A09),
-        primaryColor: const Color(0xFFF59E0B),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFF59E0B),
-          background: Color(0xFF0C0A09),
-          surface: Color(0xFF1C1917),
-        ),
-        // Match premium visual feel of index.html by omitting heavy click highlights
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.white.withOpacity(0.04),
-        fontFamily: 'sans-serif',
-      ),
+      theme: AppTheme.darkTheme,
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 450),
         switchInCurve: Curves.easeOut,
