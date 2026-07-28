@@ -832,13 +832,14 @@ class _HomePageState extends State<HomePage> {
 
   // --- Portrait Mobile Layout ---
   Widget _buildMobileLayout() {
-    return Column(
-      children: [
-        // Push the content down to prevent the 16:9 video viewport from overflowing/drawing under the status bar area
-        SizedBox(height: MediaQuery.of(context).padding.top),
-        // Video viewport (Sticky 16:9 ratio at top)
-        AspectRatio(
-          aspectRatio: 16 / 9,
+    return SafeArea(
+      top: true,
+      bottom: true,
+      child: Column(
+        children: [
+          // Video viewport (Sticky 16:9 ratio at top)
+          AspectRatio(
+            aspectRatio: 16 / 9,
           child: _activeChannel != null
               ? VideoPlayerWidget(
                   key: _playerKey,
@@ -1066,11 +1067,10 @@ class _HomePageState extends State<HomePage> {
         ),
         // Fixed Footer Developer Credits at the bottom position of the screen
         _buildDevCredits(),
-        // Push content above device system navigation bar
-        SizedBox(height: MediaQuery.of(context).padding.bottom),
       ],
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDevCredits() {
     return Container(
