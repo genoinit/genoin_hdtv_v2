@@ -72,7 +72,7 @@ class PlayerControls extends StatelessWidget {
                 // Floating Glassmorphic Pill Control Bar with Raw GestureDetector Icons (Zero default padding)
                 Positioned(
                   bottom: reelsMode
-                      ? 125.0 + MediaQuery.of(context).padding.bottom
+                      ? (MediaQuery.of(context).orientation == Orientation.landscape ? 12.0 : 125.0) + MediaQuery.of(context).padding.bottom
                       : (isMobile && !isFullscreen)
                           ? 12.0
                           : 24.0 + MediaQuery.of(context).padding.bottom,

@@ -710,7 +710,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     ),
 
                   // Top-half panel toggle trigger (always active, intercepts taps on top half of screen to open playlists during loading/error)
-                  if (_isFullscreen)
+                  if (_isFullscreen && !widget.reelsMode)
                     Positioned(
                       top: 45, // Clear the top bar strip for Server badge and Reels button
                       left: 0,
