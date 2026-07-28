@@ -117,19 +117,19 @@ class _ChannelGridState extends State<ChannelGrid> {
         children: [
           // Horizontal scrolling list
           SizedBox(
-            height: 90,
+            height: 80,
             child: ListView.builder(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               itemCount: widget.channels.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               itemBuilder: (context, index) {
                 final channel = widget.channels[index];
                 final isActive = widget.activeChannel?.name == channel.name;
                 final isFav = widget.favorites.contains(channel.urls.isNotEmpty ? channel.urls.first : '');
                 
                 return Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.only(right: 3),
                   child: ChannelCard(
                     channel: channel,
                     isActive: isActive,
@@ -168,7 +168,7 @@ class _ChannelGridState extends State<ChannelGrid> {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 5,
         mainAxisSpacing: 0,
-        crossAxisSpacing: 6,
+        crossAxisSpacing: 3,
         childAspectRatio: 0.78, // Tightly fitted ratio for 5 items per row with logo & title
       ),
       itemBuilder: (context, index) {

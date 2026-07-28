@@ -4,6 +4,7 @@ import 'video_player_widget.dart';
 import '../utils/storage.dart';
 
 class ReelsPage extends StatefulWidget {
+  final Key? playerKey;
   final List<Channel> channels;
   final int initialIndex;
   final bool isMuted;
@@ -18,6 +19,7 @@ class ReelsPage extends StatefulWidget {
 
   const ReelsPage({
     super.key,
+    this.playerKey,
     required this.channels,
     required this.initialIndex,
     required this.isMuted,
@@ -119,7 +121,9 @@ class _ReelsPageState extends State<ReelsPage> with SingleTickerProviderStateMix
               }
 
               return VideoPlayerWidget(
-                key: ValueKey(channel.urls.isNotEmpty ? channel.urls[channel.currentUrlIndex] : channel.name),
+                key: index == _currentIndex && widget.playerKey != null
+                    ? widget.playerKey
+                    : ValueKey(channel.urls.isNotEmpty ? channel.urls[channel.currentUrlIndex] : channel.name),
                 channel: channel,
                 isMuted: widget.isMuted,
                 volume: widget.volume,

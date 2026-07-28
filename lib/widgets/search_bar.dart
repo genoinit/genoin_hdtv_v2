@@ -76,7 +76,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: AppColors.bgCard,
             border: Border.all(

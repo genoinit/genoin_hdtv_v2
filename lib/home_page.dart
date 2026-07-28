@@ -590,6 +590,7 @@ class _HomePageState extends State<HomePage> {
       },
       child: _reelsModeActive
           ? ReelsPage(
+              playerKey: _playerKey,
               channels: _displayedChannels,
               initialIndex: _activeChannelIndex,
               isMuted: _isMuted,
@@ -684,10 +685,10 @@ class _HomePageState extends State<HomePage> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  bottom: _showDesktopTray ? 12 : -320,
+                  bottom: _showDesktopTray ? 12 : -230,
                   left: 12,
                   right: 12,
-                  height: 290,
+                  height: 205,
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFA1C1917), // index.html --bg-surface #1C1917
@@ -706,37 +707,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: Column(
                       children: [
-                        // Search bar & server selection
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
-                          child: CustomSearchBar(
-                            query: _searchQuery,
-                            onQueryChanged: _onSearchQueryChanged,
-                            playlists: _playlists,
-                            selectedPlaylist: _selectedPlaylist!,
-                            onPlaylistSelected: (pl) {
-                              setState(() {
-                                _selectedPlaylist = pl;
-                                _loadPlaylistChannels(pl, autoPlay: false);
-                              });
-                            },
-                            resultCount: _searchResultCount,
-                            searchMode: _searchMode,
-                            recentSearches: _searchHistory,
-                            onSearchSubmitted: _onSearchSubmitted,
-                            onRemoveRecent: _removeSearchHistoryItem,
-                            onClearSearch: _clearSearch,
-                          ),
-                        ),
+                        // Single horizontal bar containing: server, categories (all channels, favorites, recent), and searchbox
+                        _buildDesktopHeader(),
 
-                        // Tabs
-                        CategoryTabs(
-                          categories: _categories,
-                          selectedCategory: _selectedCategory,
-                          onCategorySelected: _switchCategory,
-                        ),
-
-                        // Channel scroll list with arrows
+                        // Channel scroll list with arrows (decreased top & bottom gap)
                         Expanded(
                           child: _rawChannels.isEmpty
                               ? const Center(
@@ -758,7 +732,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                         ),
 
-                        // Collapse button area with 50% transparent background, arrow icon, and "Tap Here to Close This" text
+                        // Collapse button area
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -766,11 +740,11 @@ class _HomePageState extends State<HomePage> {
                             });
                           },
                           child: Container(
-                            height: 42,
+                            height: 36,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             alignment: Alignment.center,
                             decoration: const BoxDecoration(
-                              color: Color(0x801C1917), // 50% transparent background (rgba(28, 25, 23, 0.50))
+                              color: Color(0x801C1917),
                               borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(15),
                                 bottomRight: Radius.circular(15),
@@ -788,23 +762,23 @@ class _HomePageState extends State<HomePage> {
                                 Icon(
                                   Icons.keyboard_arrow_down_rounded,
                                   color: Color(0xFFF59E0B),
-                                  size: 22,
+                                  size: 20,
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: 6),
                                 Text(
                                   'Tap Here to Close This',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 13,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.3,
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: 6),
                                 Icon(
                                   Icons.keyboard_arrow_down_rounded,
                                   color: Color(0xFFF59E0B),
-                                  size: 22,
+                                  size: 20,
                                 ),
                               ],
                             ),
@@ -819,6 +793,165 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       },
+    );
+  }
+
+  // --- Landscape Header Row Helper Components ---
+  Widget _buildDesktopHeader() {
+    return Container(
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 8, bottom: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF282421), // Distinct header background color slightly different from playlist tray bg (#1C1917)
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0x3FF59E0B),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        children: [
+          // 1. Server List Selection Dropdown
+          _buildDesktopPlaylistDropdown(),
+          const SizedBox(width: 8),
+
+          // 2. Search Box Input (placed together on the left with Server)
+          _buildDesktopSearchBox(),
+          const SizedBox(width: 10),
+
+          // Vertical Divider
+          Container(
+            width: 1,
+            height: 20,
+            color: Colors.white24,
+          ),
+          const SizedBox(width: 10),
+
+          // 3. Category Tabs Section (📺 All Channels, ⭐ Favorites, 🕒 Recent)
+          Expanded(
+            child: CategoryTabs(
+              categories: _categories,
+              selectedCategory: _selectedCategory,
+              onCategorySelected: _switchCategory,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopPlaylistDropdown() {
+    if (_selectedPlaylist == null) return const SizedBox();
+    return Theme(
+      data: Theme.of(context).copyWith(cardColor: AppColors.bgCard),
+      child: PopupMenuButton<Playlist>(
+        initialValue: _selectedPlaylist,
+        tooltip: 'Select Server',
+        position: PopupMenuPosition.under,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.borderSubtle),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.borderSubtle),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.dns, color: AppColors.accent, size: 13),
+              const SizedBox(width: 6),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Text(
+                  _selectedPlaylist!.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted, size: 14),
+            ],
+          ),
+        ),
+        onSelected: (Playlist pl) {
+          setState(() {
+            _selectedPlaylist = pl;
+            _loadPlaylistChannels(pl, autoPlay: false);
+          });
+        },
+        itemBuilder: (context) {
+          return _playlists.map((pl) {
+            final isSelected = pl.name == _selectedPlaylist!.name;
+            return PopupMenuItem<Playlist>(
+              value: pl,
+              child: Row(
+                children: [
+                  Icon(Icons.check, color: AppColors.accent.withOpacity(isSelected ? 1.0 : 0.0), size: 12),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      pl.name,
+                      style: TextStyle(
+                        color: isSelected ? AppColors.accent : AppColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        },
+      ),
+    );
+  }
+
+  Widget _buildDesktopSearchBox() {
+    return Container(
+      width: 165,
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: AppColors.textMuted, size: 14),
+          const SizedBox(width: 4),
+          Expanded(
+            child: TextField(
+              controller: TextEditingController(text: _searchQuery)
+                ..selection = TextSelection.fromPosition(TextPosition(offset: _searchQuery.length)),
+              onChanged: _onSearchQueryChanged,
+              onSubmitted: _onSearchSubmitted,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 12),
+              decoration: const InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 6),
+              ),
+            ),
+          ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: _clearSearch,
+              child: const Icon(Icons.close, color: AppColors.textMuted, size: 13),
+            ),
+        ],
+      ),
     );
   }
 
@@ -859,6 +992,12 @@ class _HomePageState extends State<HomePage> {
                   onError: _handlePlayerError,
                   onPlaybackStarted: _onPlaybackStarted,
                   onEnterReels: () {
+                    if (_activeChannel != null && _displayedChannels.isNotEmpty) {
+                      final foundIdx = _displayedChannels.indexOf(_activeChannel!);
+                      if (foundIdx != -1) {
+                        _activeChannelIndex = foundIdx;
+                      }
+                    }
                     setState(() {
                       _reelsModeActive = true;
                     });
@@ -897,10 +1036,13 @@ class _HomePageState extends State<HomePage> {
                 onClearSearch: _clearSearch,
               ),
               const SizedBox(height: 4),
-              CategoryTabs(
-                categories: _categories,
-                selectedCategory: _selectedCategory,
-                onCategorySelected: _switchCategory,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: CategoryTabs(
+                  categories: _categories,
+                  selectedCategory: _selectedCategory,
+                  onCategorySelected: _switchCategory,
+                ),
               ),
               const SizedBox(height: 3.5),
             ],

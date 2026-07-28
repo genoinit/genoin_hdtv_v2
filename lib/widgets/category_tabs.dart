@@ -89,12 +89,13 @@ class _CategoryTabsState extends State<CategoryTabs> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 32,
+      height: 36,
       child: ListView.builder(
         controller: _scrollController,
+        shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         itemCount: widget.categories.length,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.only(left: 0, right: 8),
         itemBuilder: (context, index) {
           final cat = widget.categories[index];
           final isActive = cat == widget.selectedCategory;
