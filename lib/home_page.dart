@@ -127,8 +127,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Default to index 2 ('📺 All Channels')
-    _mobilePageController = PageController(initialPage: 2);
+    // Default to index 0 ('📺 All Channels')
+    _mobilePageController = PageController(initialPage: 0);
     _loadInitialData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardFocusNode.requestFocus();
@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
       _rawChannels = data;
       
       // Setup category tabs list: exactly 3 categories
-      _categories = ['🕒 Recent', '⭐ Favorites', '📺 All Channels'];
+      _categories = ['📺 All Channels', '⭐ Favorites', '🕒 Recent'];
       
       _isLoadingPlaylist = false;
       _selectedCategory = '📺 All Channels';
@@ -1114,21 +1114,18 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildSocialButton(
                 icon: Icons.facebook,
-                color: const Color(0xFF1877F2),
                 url: 'https://www.facebook.com/Thesaidursumon',
                 tooltip: 'Facebook',
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
               _buildSocialButton(
                 icon: Icons.send,
-                color: const Color(0xFF0088CC),
                 url: 'https://t.me/thesaidursumon',
                 tooltip: 'Telegram',
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
               _buildSocialButton(
                 icon: Icons.chat,
-                color: const Color(0xFF25D366),
                 url: 'https://wa.me/8801891965724',
                 tooltip: 'WhatsApp',
               ),
@@ -1150,7 +1147,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSocialButton({
     required IconData icon,
-    required Color color,
     required String url,
     required String tooltip,
   }) {
@@ -1158,23 +1154,10 @@ class _HomePageState extends State<HomePage> {
       message: tooltip,
       child: GestureDetector(
         onTap: () => _launchURL(url),
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: color.withOpacity(0.4),
-              width: 1,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            color: color,
-            size: 16,
-          ),
+        child: Icon(
+          icon,
+          color: AppColors.accent, // Orange theme color (Amber)
+          size: 18,
         ),
       ),
     );
@@ -1236,21 +1219,18 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _buildSocialButton(
                   icon: Icons.facebook,
-                  color: const Color(0xFF1877F2),
                   url: 'https://facebook.com/thesaidursumon',
                   tooltip: 'Facebook',
                 ),
                 const SizedBox(width: 8),
                 _buildSocialButton(
                   icon: Icons.send,
-                  color: const Color(0xFF0088CC),
                   url: 'https://t.me/thesaidursumon',
                   tooltip: 'Telegram',
                 ),
                 const SizedBox(width: 8),
                 _buildSocialButton(
                   icon: Icons.chat,
-                  color: const Color(0xFF25D366),
                   url: 'https://wa.me/8801891965724',
                   tooltip: 'WhatsApp',
                 ),

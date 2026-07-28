@@ -381,24 +381,27 @@ class PlayerControls extends StatelessWidget {
                 if (isMobile && !reelsMode && onEnterReels != null)
                   Positioned(
                     top: isFullscreen ? 10 + MediaQuery.of(context).padding.top : 6,
-                    right: isFullscreen ? 10 + MediaQuery.of(context).padding.right : 6,
+                    right: isFullscreen ? 16 + MediaQuery.of(context).padding.right : 12,
                     child: GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xCC1C1917),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0x3FF59E0B)),
-                        ),
-                        child: IconButton(
-                          onPressed: onEnterReels,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                          icon: const Icon(Icons.stay_current_portrait, color: Color(0xFFF59E0B), size: 14),
-                          tooltip: 'Reels Mode',
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
+                      onTap: onEnterReels,
+                      behavior: HitTestBehavior.opaque,
+                      child: Tooltip(
+                        message: 'Reels Mode',
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xCC1C1917),
+                            borderRadius: BorderRadius.circular(6.0),
+                            border: Border.all(
+                              color: const Color(0x3FF59E0B),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.stay_current_portrait,
+                            color: Color(0xFFF59E0B),
+                            size: 23,
+                          ),
                         ),
                       ),
                     ),
