@@ -236,7 +236,7 @@ class _HomePageState extends State<HomePage> {
         });
         _displayedChannels = favs;
       } else if (_selectedCategory == '🕒 Recent') {
-        _displayedChannels = _recents;
+        _displayedChannels = List.from(_recents);
       } else {
         // "📺 All Channels": Combine all channels from all categories at once
         final allCh = <Channel>[];
@@ -268,6 +268,7 @@ class _HomePageState extends State<HomePage> {
       _activeChannelIndex = index;
       _isLocalErrorShowing = false;
       _recents = AppStorage.getRecentWatched();
+      _updateDisplayedChannels();
     });
   }
 
@@ -603,6 +604,7 @@ class _HomePageState extends State<HomePage> {
               onExit: () {
                 setState(() {
                   _reelsModeActive = false;
+                  _updateDisplayedChannels();
                 });
               },
               onFavoriteToggled: _toggleFavorite,
