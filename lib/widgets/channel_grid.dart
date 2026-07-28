@@ -117,12 +117,12 @@ class _ChannelGridState extends State<ChannelGrid> {
         children: [
           // Horizontal scrolling list
           SizedBox(
-            height: 80,
+            height: 88,
             child: ListView.builder(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               itemCount: widget.channels.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 6, bottom: 0),
               itemBuilder: (context, index) {
                 final channel = widget.channels[index];
                 final isActive = widget.activeChannel?.name == channel.name;

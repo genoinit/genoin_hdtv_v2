@@ -685,10 +685,10 @@ class _HomePageState extends State<HomePage> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  bottom: _showDesktopTray ? 12 : -280,
+                  bottom: _showDesktopTray ? 12 : -290,
                   left: 12,
                   right: 12,
-                  height: 255,
+                  height: 262,
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFA1C1917), // index.html --bg-surface #1C1917
@@ -743,26 +743,29 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
 
-                        // 3rd Row: Playlist / Channel list grid
+                        // 3rd Row: Playlist / Channel list grid with top spacing
                         Expanded(
-                          child: _rawChannels.isEmpty
-                              ? const Center(
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: _rawChannels.isEmpty
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                                    ),
+                                  )
+                                : ChannelGrid(
+                                    channels: _displayedChannels,
+                                    activeChannel: _activeChannel,
+                                    favorites: _favorites,
+                                    searchQuery: _searchQuery,
+                                    isDesktop: true,
+                                    onChannelTap: (ch) {
+                                      final idx = _displayedChannels.indexOf(ch);
+                                      _playChannel(ch, idx);
+                                    },
+                                    onFavoriteToggled: _toggleFavorite,
                                   ),
-                                )
-                              : ChannelGrid(
-                                  channels: _displayedChannels,
-                                  activeChannel: _activeChannel,
-                                  favorites: _favorites,
-                                  searchQuery: _searchQuery,
-                                  isDesktop: true,
-                                  onChannelTap: (ch) {
-                                    final idx = _displayedChannels.indexOf(ch);
-                                    _playChannel(ch, idx);
-                                  },
-                                  onFavoriteToggled: _toggleFavorite,
-                                ),
+                          ),
                         ),
 
                         // 4th Row: Collapse Section ("Tap Here to Close This")
