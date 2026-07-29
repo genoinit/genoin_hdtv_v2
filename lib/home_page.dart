@@ -696,8 +696,12 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.black,
                     alignment: Alignment.center,
                     child: const Text(
-                      'No stream selected',
-                      style: TextStyle(color: Colors.white70),
+                      'Select A Channel to Stream',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
 
@@ -978,7 +982,14 @@ class _HomePageState extends State<HomePage> {
               : Container(
                   color: Colors.black,
                   alignment: Alignment.center,
-                  child: const Text('No stream active', style: TextStyle(color: Colors.white70)),
+                  child: const Text(
+                    'Select A Channel to Stream',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
         ),
 

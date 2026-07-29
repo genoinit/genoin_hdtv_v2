@@ -10,11 +10,11 @@ import '../utils/parser.dart';
 class PlaylistService {
   static List<Playlist> getBuiltInPlaylists() {
     return [
-      Playlist(
-        name: 'Genoin',
-        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/genoin.m3u',
-        type: 'm3u',
-      ),
+      // Playlist(
+      //   name: 'Genoin',
+      //   url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/genoin.m3u',
+      //   type: 'm3u',
+      // ),
       Playlist(
         name: 'Bangla',
         url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/bangla.json',
@@ -25,11 +25,11 @@ class PlaylistService {
         url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/sports.json',
         type: 'json',
       ),
-      Playlist(
-        name: 'FTP',
-        url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/ftp.json',
-        type: 'json',
-      ),
+      // Playlist(
+      //   name: 'FTP',
+      //   url: 'https://raw.githubusercontent.com/genoinit/genoinit.github.io/refs/heads/main/playlist/ftp.json',
+      //   type: 'json',
+      // ),
     ];
   }
 
